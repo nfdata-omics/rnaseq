@@ -10,6 +10,8 @@ include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pi
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_rnaseq_pipeline'
 
+include { PICARD_COLLECTRNASEQMETRICS } from '../modules/nf-core/picard/collectrnaseqmetrics/main'
+
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     RUN MAIN WORKFLOW
@@ -24,14 +26,42 @@ workflow RNASEQ {
 
     ch_versions = Channel.empty()
     ch_multiqc_files = Channel.empty()
+
+    ch_samplesheet
+        .filter{ it[0].data_type == "fastq" }
+        .map {
+            meta, fastq1s, fastq2s, bams ->
+                return [ meta, fastq1s + fastq2s ]
+        }
+        .set { ch_fastqs }
+
     //
     // MODULE: Run FastQC
     //
     FASTQC (
-        ch_samplesheet
+        ch_fastqs
     )
     ch_multiqc_files = ch_multiqc_files.mix(FASTQC.out.zip.collect{it[1]})
     ch_versions = ch_versions.mix(FASTQC.out.versions.first())
+
+    ch_samplesheet
+        .filter{ it[0].data_type == "bam" }
+        .map {
+            meta, fastq1s, fastq2s, bams ->
+                return [ meta, bam ]
+        }
+        .set { ch_bam }
+
+    //
+    // INSERT BAM PROCESSING HERE
+    //
+
+    PICARD_COLLECTRNASEQMETRICS(
+        ch_bam,
+        params.ref_flat,
+        params.fasta,
+        []
+    )
 
     //
     // Collate and save software versions

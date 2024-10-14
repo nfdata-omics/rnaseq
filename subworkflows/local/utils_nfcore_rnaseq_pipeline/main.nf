@@ -75,20 +75,21 @@ workflow PIPELINE_INITIALISATION {
     Channel
         .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
         .map {
-            meta, fastq_1, fastq_2 ->
-                if (!fastq_2) {
-                    return [ meta.id, meta + [ single_end:true ], [ fastq_1 ] ]
+            meta, fastq_1, fastq_2, bam ->
+                if (bam) {
+                    dtype = "bam"
                 } else {
-                    return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ] ]
+                    dtype = "fastq"
                 }
+                return [ meta.id, meta + [ data_type:dtype ], fastq_1, fastq_2, bam ]
         }
         .groupTuple()
         .map { samplesheet ->
             validateInputSamplesheet(samplesheet)
         }
         .map {
-            meta, fastqs ->
-                return [ meta, fastqs.flatten() ]
+            meta, fastq1s, fastq2s, bam ->
+                return [ meta, fastq1s.flatten(), fastq2s.flatten(), bam.flatten() ]
         }
         .set { ch_samplesheet }
 
@@ -160,15 +161,18 @@ def validateInputParameters() {
 // Validate channels from input samplesheet
 //
 def validateInputSamplesheet(input) {
-    def (metas, fastqs) = input[1..2]
+    def (metas, fastq1s, fastq2s, bams) = input[1..4]
 
-    // Check that multiple runs of the same sample are of the same datatype i.e. single-end / paired-end
-    def endedness_ok = metas.collect{ meta -> meta.single_end }.unique().size == 1
-    if (!endedness_ok) {
-        error("Please check input samplesheet -> Multiple runs of a sample must be of the same datatype i.e. single-end or paired-end: ${metas[0].id}")
+    // Check that multiple runs of the same sample are of the same datatype
+    def datatype_ok = metas.collect{ it.data_type }.unique().size == 1
+    if (!datatype_ok) {
+        error("Please check input samplesheet -> Multiple runs of a sample must be of the same datatype i.e. fastq or bam: ${metas[0].id}")
+    }
+    if (metas[0].data_type == "bam" && metas.size() > 1) {
+        error("Please check input samplesheet -> Multiple bams for the same sample : ${metas[0].id}")
     }
 
-    return [ metas[0], fastqs ]
+    return [ metas[0], fastq1s, fastq2s, bams ]
 }
 //
 // Get attribute from genome config file e.g. fasta
