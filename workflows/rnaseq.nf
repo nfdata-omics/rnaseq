@@ -11,6 +11,7 @@ include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pi
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_rnaseq_pipeline'
 
 include { PICARD_COLLECTRNASEQMETRICS } from '../modules/nf-core/picard/collectrnaseqmetrics/main'
+include { R_COUNT_NORM }                from '../modules/local/r_count_norm/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -26,6 +27,10 @@ workflow RNASEQ {
 
     ch_versions = Channel.empty()
     ch_multiqc_files = Channel.empty()
+
+    if ( params.counts ) {
+        ch_samplesheet = Channel.empty()
+    }
 
     ch_samplesheet
         .filter{ it[0].data_type == "fastq" }
@@ -61,6 +66,13 @@ workflow RNASEQ {
         params.ref_flat,
         params.fasta,
         []
+    )
+
+    //
+    // COUNT NORMALIZATION
+    //
+    R_COUNT_NORM(
+        params.counts
     )
 
     //
