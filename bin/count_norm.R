@@ -70,6 +70,9 @@ if(feature_counts){
 }
 
 
+# Saving dge object for further inspection
+save(y_all, file="dge_obj.rds")
+
 
 
 
