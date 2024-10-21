@@ -28,18 +28,22 @@ feature_counts = opt$featureCounts
 
 
 # Importing raw counts - TODO: decomment this line after Carninci
-#counts = read.delim(input_data, h=T, row.names=1, check.names=F)
+counts = read.delim(input_data, h=T, row.names=1, check.names=F)
 
 if(feature_counts){
 
 	y_all = DGEList(counts=counts[,6:ncol(counts)], genes=counts[,1:5])
 	# Cpm
 	cpm = cpm(y_all, log=FALSE)
-	write.table(cpm, "cpm.txt", quote=F, row.names=T, col.names=T, sep="\t")
+	cpm = cbind(rownames(cpm), cpm)
+	colnames(cpm)[1] = "gene_name"
+	write.table(cpm, "cpm.txt", quote=F, row.names=F, col.names=T, sep="\t")
 	# Log-norm-rpkm (TMM normalization)
 	y_all = calcNormFactors(y_all, method="TMM")
 	log_norm_rpkm = rpkm(y_all, log=T, gene.length=y_all$genes$Length)
-	write.table(log_norm_rpkm, "log.norm.rpkm.txt", quote=F, row.names=T, col.names=T, sep="\t")
+	log_norm_rpkm = cbind(rownames(log_norm_rpkm), log_norm_rpkm)
+        colnames(log_norm_rpkm)[1] = "gene_name"
+	write.table(log_norm_rpkm, "log.norm.rpkm.txt", quote=F, row.names=F, col.names=T, sep="\t")
 	# Lib size and normalization factor
 	size_factors = data.frame(samples=rownames(y_all$samples), lib.size=y_all$samples$lib.size, norm.factors=y_all$samples$norm.factors)
 	write.table(size_factors, "lib_size_factors.txt", quote=F, row.names=F, col.names=T, sep="\t")
@@ -48,15 +52,17 @@ if(feature_counts){
 
 	# TODO: This is a temporary custom script for Carninci project fantom6, then delete this part
 	# Importing raw counts - from Salmon
-	counts$gene_name <- make.unique(counts$gene_name) # make unique gene_name
-	rownames(counts) = counts$gene_name # switch to gene_name
-	counts = counts[,-1]
+	#counts$gene_name <- make.unique(counts$gene_name) # make unique gene_name
+	#rownames(counts) = counts$gene_name # switch to gene_name
+	#counts = counts[,-1]
 	### \end of Carninci custom script
 
 	y_all = DGEList(counts=counts)
 	# Cpm
 	cpm = cpm(y_all, log=FALSE)
-	write.table(cpm, "cpm.txt", quote=F, row.names=T, col.names=T, sep="\t")
+	cpm = cbind(rownames(cpm), cpm)
+        colnames(cpm)[1] = "gene_name"
+	write.table(cpm, "cpm.txt", quote=F, row.names=F, col.names=T, sep="\t")
 	# Lib size
 	size_factors = data.frame(samples=rownames(y_all$samples), lib.size=y_all$samples$lib.size)
 	write.table(size_factors, "lib_size_factors.txt", quote=F, row.names=F, col.names=T, sep="\t")
