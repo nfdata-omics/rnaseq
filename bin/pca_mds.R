@@ -44,6 +44,11 @@ var = apply(data, 1, var)
 names(var) = rownames(data)
 sorted_var = sort(var, decreasing=T)
 data = data[names(sorted_var[1:top_var]),]
+# Saving data to produce dendrogram directly from python
+data2dendr = cbind(rownames(data), data)
+colnames(data2dendr)[1] = "gene_name"
+write.table(data2dendr, "exprs_data_to_hc_dendrog.txt", quote=F, row.names=F, col.names=T, sep="\t")
+
 
 # PCA
 pca = prcomp(t(data), scale=T, center=T)
