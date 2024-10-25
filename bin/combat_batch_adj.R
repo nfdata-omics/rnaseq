@@ -78,6 +78,13 @@ if(length(biol_groups)>1){
 }
 exprs_adj = cbind(rownames(exprs_adj), exprs_adj)
 colnames(exprs_adj)[1] = "gene_name"
+
+# Since the output is formatted as an adjusted count matrix with integer values, I re-attach gene information if available
+if(feature_counts){
+  exprs_adj = cbind(exprs_adj[,1], counts[,1:5], exprs_adj[,2:ncol(exprs_adj)])
+  colnames(exprs_adj)[1] = "gene_name"
+}
+
 write.table(exprs_adj, "counts_batch_adj.txt", quote=F, row.names=F, col.names=T, sep="\t")
 
 
