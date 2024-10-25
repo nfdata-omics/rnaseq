@@ -8,7 +8,7 @@ suppressMessages(library("edgeR"))
 
 option_list <- list(
   make_option(c("-f", "--featureCounts"), action="store_true", default=FALSE, help="Whether the raw counts matrix was originally produced using featureCounts or not. If true, PCA will be performed on rpkm values instead of cpm. [default \"%default\"]"),
-  make_option(c("-n", "--num_samples"), action="store", type="integer", default=1, help="Number of samples to define expressed genes. Expressed genes were defined as those genes showing at least 1 cpm on at least 'n' different samples. Usually, this is the size of the smallest sample group. [default \"%default\"]"),
+  make_option(c("-n", "--num_samples"), action="store", type="integer", default=1, help="Number of samples to define expressed genes. Expressed genes will be defined as those genes showing at least 1 cpm on at least 'n' different samples. Usually, this is the size of the smallest sample group. [default \"%default\"]"),
   make_option(c("-t", "--top_var"), action="store", type="integer", default=5000, help="Number of the most variable genes to consider. PCA and MDS will be performed on the top 't' most variable genes, in order to focus on the main sources of variability in the dataset. [default \"%default\"]"),
  make_option(c("-s","--suffix"), action="store", type="character", default="", help="Suffix to append to the output paths, e.g. PCA_scores_SUFFIX.txt. [default \"%default\"]")
 )
