@@ -9,9 +9,9 @@ include { paramsSummaryMap       } from 'plugin/nf-schema'
 include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
 include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_rnaseq_pipeline'
+include { COUNT_DOWNSTREAM }       from '../subworkflows/local/count_downstream'
 
 include { PICARD_COLLECTRNASEQMETRICS } from '../modules/nf-core/picard/collectrnaseqmetrics/main'
-include { R_COUNT_NORM }                from '../modules/local/r_count_norm/main'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -68,11 +68,14 @@ workflow RNASEQ {
         []
     )
 
+    count_matrix_ch = Channel.fromPath(params.counts)
+
     //
-    // COUNT NORMALIZATION
+    // DOWNSTREAM ANALYSIS OF COUNT MATRIX
     //
-    R_COUNT_NORM(
-        params.counts
+
+    COUNT_DOWNSTREAM(
+        count_matrix_ch
     )
 
     //
