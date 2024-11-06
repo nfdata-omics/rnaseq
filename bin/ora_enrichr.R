@@ -75,6 +75,18 @@ if(length(my_genes_down)>=5){
 
 
 
+# Saving package versions
+x = sessionInfo()
+my_pkgs = c(paste(" "," "," ","R: ",x$R.version$major,".",x$R.version$minor, sep=""))
+for(i in 1:length(x$otherPkgs)){
+  my_pkgs = c(my_pkgs, paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, sep=""))
+}
+pkgVersion = file("R_pkgs_versions.txt")
+writeLines(my_pkgs, pkgVersion)
+close(pkgVersion)
+
+
+
 
 ########################
 
