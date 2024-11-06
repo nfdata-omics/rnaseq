@@ -23,14 +23,13 @@ workflow RNASEQ {
 
     take:
     ch_samplesheet // channel: samplesheet read in from --input
+    ch_counts      // channel: count matrix file read as --counts
+    ch_metadata    // channel: sample metadata table read as --metadata
+
     main:
 
     ch_versions = Channel.empty()
     ch_multiqc_files = Channel.empty()
-
-    if ( params.counts ) {
-        ch_samplesheet = Channel.empty()
-    }
 
     ch_samplesheet
         .filter{ it[0].data_type == "fastq" }
@@ -53,7 +52,7 @@ workflow RNASEQ {
         .filter{ it[0].data_type == "bam" }
         .map {
             meta, fastq1s, fastq2s, bams ->
-                return [ meta, bam ]
+                return [ meta, bams ]
         }
         .set { ch_bam }
 
@@ -68,14 +67,13 @@ workflow RNASEQ {
         []
     )
 
-    count_matrix_ch = Channel.fromPath(params.counts)
-
     //
     // DOWNSTREAM ANALYSIS OF COUNT MATRIX
     //
 
     COUNT_DOWNSTREAM(
-        count_matrix_ch
+        ch_counts,
+        ch_metadata
     )
 
     //

@@ -26,7 +26,16 @@
                 "counts": {
                     "type": "string",
                     "description": "Path to file with computed gene counts",
-                    "format": "file-path"
+                    "format": "file-path",
+                    "fa_icon": "fas fa-file-excel"
+                },
+                "metadata": {
+                    "type": "string",
+                    "description": "Path to comma-separated file with the sample metadata",
+                    "pattern": "^\\S+\\.csv$",
+                    "format": "file-path",
+                    "mimetype": "text/csv",
+                    "fa_icon": "fas fa-file-csv"
                 },
                 "outdir": {
                     "type": "string",
