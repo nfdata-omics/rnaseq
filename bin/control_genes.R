@@ -11,7 +11,8 @@ option_list <- list(
   #make_option(c("-f", "--featureCounts"), action="store_true", default=FALSE, help="Whether the raw counts matrix was originally produced using featureCounts or not. If true, rpkm values will be considered instead of cpm. [default \"%default\"]"),
   #I think it could be better to explicitly specify the name of the input table
   make_option(c("-a", "--annotations"), action="store", type="character", default="", help="The name(s) of categorical variables to highlight on the top of the heatmap (as annotation column bars). They must be the names of the corresponding metadata columns. If multiple names are provided, they must be comma-separated with no blank spaces (e.g. genotype,treatment). [default \"%default\"]"),
-  make_option(c("-d", "--dendrogram"), action="store", type="integer", default=3, help="Whether to perform clustering and show the corresponding dendrogram on rows/genes ('1'), on columns/samples ('2'), both ('3') or none ('0'). [default \"%default\"]")
+  make_option(c("-d", "--dendrogram"), action="store", type="integer", default=3, help="Whether to perform clustering and show the corresponding dendrogram on rows/genes ('1'), on columns/samples ('2'), both ('3') or none ('0'). [default \"%default\"]"),
+  make_option(c("-s", "--scale_rows"), action="store_true", default=FALSE, help="Whether the values should be centered and scaled in the row direction. If true, genes with constant expression will be removed. [default \"%default\"]")
 )
 
 parser<-OptionParser(usage = "%prog [options] input_data genes_list metadata
@@ -35,6 +36,7 @@ metadata = arguments$args[3]
 #feature_counts = opt$featureCounts
 annot = str_split_1(opt$annotations, ",")
 dend = opt$dendrogram
+scale_rows = opt$scale_rows
 
 
 # Importing expression values
@@ -60,6 +62,15 @@ if(length(control_genes)==0){
 # Filtering data table
 data_ctrl = data[control_genes,]
 
+# Excluding constant genes if scaling on row
+if(scale_rows){
+  var = apply(data_ctrl, 1, var)
+  data_ctrl = data_ctrl[var!=0,]
+  scale_value = "row"
+} else{
+  scale_value = "none"
+}
+
 # Annotations for heatmap
 if(annot[1]!=""){
   if(sum(!annot%in%colnames(meta))>0){
@@ -73,6 +84,7 @@ if(annot[1]!=""){
   }
 }
 
+
 # Handling clustering options
 if(dend==0) {clRows=F; clCols=F}
 if(dend==1) {clRows=T; clCols=F}
@@ -83,9 +95,9 @@ if(dend>3) {stop("The dendrogram option must be set to an integer number ranging
 # Plot
 pdf("heatmap_control_genes.pdf", width=8, height=10)
 if(annot[1]!=""){
-  pheatmap(data_ctrl, main="Heatmap of selected genes", display_numbers=F, cluster_rows=clRows, cluster_cols=clCols, annotation_col=col_annot)
+  pheatmap(data_ctrl, main="Heatmap of selected genes", display_numbers=F, scale=scale_value, cluster_rows=clRows, cluster_cols=clCols, annotation_col=col_annot)
 } else {
-  pheatmap(data_ctrl, main="Heatmap of selected genes", display_numbers=F, cluster_rows=clRows, cluster_cols=clCols)
+  pheatmap(data_ctrl, main="Heatmap of selected genes", display_numbers=F, scale=scale_value, cluster_rows=clRows, cluster_cols=clCols)
 }
 dev.off()
 
