@@ -32,6 +32,8 @@ workflow PIPELINE_INITIALISATION {
     nextflow_cli_args //   array: List of positional nextflow CLI args
     outdir            //  string: The output directory where the results will be saved
     input             //  string: Path to input samplesheet
+    counts            //  string: Path to the count matrix
+    metadata          //  string: Path to the table with the sample metadata
 
     main:
 
@@ -72,30 +74,51 @@ workflow PIPELINE_INITIALISATION {
     // Create channel from input file provided through params.input
     //
 
-    Channel
-        .fromList(samplesheetToList(params.input, "${projectDir}/assets/schema_input.json"))
-        .map {
-            meta, fastq_1, fastq_2, bam ->
-                if (bam) {
-                    dtype = "bam"
-                } else {
-                    dtype = "fastq"
-                }
-                return [ meta.id, meta + [ data_type:dtype ], fastq_1, fastq_2, bam ]
-        }
-        .groupTuple()
-        .map { samplesheet ->
-            validateInputSamplesheet(samplesheet)
-        }
-        .map {
-            meta, fastq1s, fastq2s, bam ->
-                return [ meta, fastq1s.flatten(), fastq2s.flatten(), bam.flatten() ]
-        }
-        .set { ch_samplesheet }
+    if ( counts ) {
+
+        ch_samplesheet = Channel.empty()
+
+    } else {
+
+        Channel
+            .fromList(samplesheetToList(input, "${projectDir}/assets/schema_input.json"))
+            .map {
+                meta, fastq_1, fastq_2, bam ->
+                    if (bam) {
+                        return [ meta.id, meta + [ data_type:"bam" ], fastq_1, fastq_2, bam ]
+                    } else {
+                        return [ meta.id, meta + [ data_type:"fastq" ], fastq_1, fastq_2, bam ]
+                    }
+            }
+            .groupTuple()
+            .map { samplesheet ->
+                validateInputSamplesheet(samplesheet)
+            }
+            .map {
+                meta, fastq1s, fastq2s, bam ->
+                    return [ meta, fastq1s.flatten(), fastq2s.flatten(), bam.flatten() ]
+            }
+            .set { ch_samplesheet }
+    }
+
+    //
+    // TODO: Validation of the count matrix
+    //
+
+    ch_counts = counts ? Channel.fromPath( counts, checkIfExists: true ) : Channel.empty()
+
+    //
+    // TODO: Validation of the metadata table
+    //
+
+    ch_metadata = metadata ? Channel.fromPath( metadata, checkIfExists: true ) : null
+
 
     emit:
     samplesheet = ch_samplesheet
     versions    = ch_versions
+    counts      = ch_counts
+    metadata    = ch_metadata
 }
 
 /*
