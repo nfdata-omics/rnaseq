@@ -1,18 +1,16 @@
-process R_COUNT_NORM {
-    tag "$meta.id"
+process DESEQ2_COMPARE {
+    tag "$meta.id_$comparison"
     label 'process_single'
 
     container "docker.io/sddcunit/downstream:rnaseq-1.0.2"
 
     input:
-    tuple val(meta), path(annotated_counts)
+    tuple val(meta), path(model)
+    val comparison
 
     output:
-    tuple val(meta), path("*.norm.rds")     , emit: rds
-    path "lib_size_factors.txt"             , emit: size_factors
-    path "cpm.txt"                          , emit: cpm
-    path 'log.norm.rpkm.txt', optional: true, emit: rpkm
-    path "versions.yml"                     , emit: versions
+    tuple val([id:"$meta.id", df:"$comparison"]), path("*.txt"), emit: dge
+    path "versions.yml"                                        , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -21,26 +19,25 @@ process R_COUNT_NORM {
     if (params.enable_conda) {
         exit 1, "Conda environments cannot be used when using the this pipeline. Please use docker or singularity containers."
     }
+    args = task.ext.args ?: ''
     """
-    count_norm. $args $annotated_counts
+    dge_deseq2_results.R $args $model $comparison
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         R: \$(R --version)
     END_VERSIONS
-    count_norm.R --versions >> versions.yml
+    dge_deseq2_results.R --versions >> versions.yml
     """
 
     stub:
     """
-    touch cpm.txt
-    touch lib_size_factors.cpm.txt
-    touch rnaseq_matrix.norm.rds
+    touch dge.txt
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         R: \$(R --version)
     END_VERSIONS
-    count_norm.R --versions >> versions.yml
+    dge_deseq2_results.R --versions >> versions.yml
     """
 }
