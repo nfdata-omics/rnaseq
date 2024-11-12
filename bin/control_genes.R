@@ -1,56 +1,49 @@
 #!/usr/bin/env Rscript
-
+options(warn=-1)
 suppressMessages(library("optparse"))
 suppressMessages(library("pheatmap"))
 suppressMessages(library("ggplot2"))
 suppressMessages(library("stringr"))
+suppressMessages(library("SummarizedExperiment"))
 
 ### Script to extract expression values of specific control genes 
 
 option_list <- list(
-  #make_option(c("-f", "--featureCounts"), action="store_true", default=FALSE, help="Whether the raw counts matrix was originally produced using featureCounts or not. If true, rpkm values will be considered instead of cpm. [default \"%default\"]"),
-  #I think it could be better to explicitly specify the name of the input table
   make_option(c("-a", "--annotations"), action="store", type="character", default="", help="The name(s) of categorical variables to highlight on the top of the heatmap (as annotation column bars). They must be the names of the corresponding metadata columns. If multiple names are provided, they must be comma-separated with no blank spaces (e.g. genotype,treatment). [default \"%default\"]"),
-  make_option(c("-d", "--dendrogram"), action="store", type="integer", default=3, help="Whether to perform clustering and show the corresponding dendrogram on rows/genes ('1'), on columns/samples ('2'), both ('3') or none ('0'). [default \"%default\"]"),
+  make_option(c("-d", "--dendrogram"), action="store", type="integer", default=2, help="Whether to perform clustering and show the corresponding dendrogram on rows/genes ('1'), on columns/samples ('2'), both ('3') or none ('0'). [default \"%default\"]"),
   make_option(c("-s", "--scale_rows"), action="store_true", default=FALSE, help="Whether the values should be centered and scaled in the row direction. If true, genes with constant expression will be removed. [default \"%default\"]")
 )
 
-parser<-OptionParser(usage = "%prog [options] input_data genes_list metadata
-                     'input_data' is the path to a tab-delimited file containing the expression values (ideally cpm or rpkm if possible) from which the expression levels of selected control genes are extracted. Samples must be reported on different columns, genes on different rows.
-                     'genes_list' is the path to a tab-delimited file containing the list of control genes to evaluate. Each gene must be reported in a different row, with no header.
-                     'metadata' is the path to a tab delimited file containing sample metadata. Sample names must be reported in the first column.",
+parser<-OptionParser(usage = "%prog [options] rna_object genes_list
+                     'rna_object' is the path of a .rds object containing a Summarized Experiment with expression data and samples metadata.
+                     'genes_list' is the path to a tab-delimited file containing the list of control genes to evaluate. Each gene must be reported in a different row, with no header. Gene encoding must be the same used for the raw counts matrix.",
                      option_list = option_list, prog = "control_genes",
-                     description = "Extract the expression values of specific control genes, and produce the corresponding heatmap."
+                     description = "Extract the expression values (cpm or rpkm for featureCounts produced data) of specific control genes, and produce the corresponding heatmap."
 )
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
 opt <- arguments$options
 
-if (length(arguments$args)!=3) {
-  stop("Three arguments must be supplied (input_data, genes_list and metadata)", call.=FALSE)
+if (length(arguments$args)!=2) {
+  stop("Two arguments must be supplied (rna_object and genes_list)", call.=FALSE)
 }
 
-input_data = arguments$args[1]
+rna_object = arguments$args[1]
 genes_list = arguments$args[2]
-metadata = arguments$args[3]
-#feature_counts = opt$featureCounts
 annot = str_split_1(opt$annotations, ",")
 dend = opt$dendrogram
 scale_rows = opt$scale_rows
 
 
-# Importing expression values
-# if(feature_counts){
-#   data = read.delim("log.norm.rpkm.txt", h=T, row.names=1)
-# } else {
-#   data = read.delim("cpm.txt", h=T, row.names=1)
-# }
-data = read.delim(input_data, h=T, row.names=1)
+# Importing rna_object
+rna_exp = get(load(rna_object))
 
-# Importing metadata and matching names
-meta = read.delim(metadata, h=T, row.names=1, check.names=F)
-meta = meta[rownames(meta)%in%colnames(data),]
-meta = meta[match(colnames(data), rownames(meta)),]
+# Extracting expression data - cpm or rpkm, depending on whether the data were produced using featureCounts or not
+if(rna_exp@metadata$featureCounts){
+  data = rna_exp@assays@data$log_norm_rpkm
+} else {
+  data = rna_exp@assays@data$cpm
+}
 
 # Importing control genes
 control_genes = as.character(read.delim(genes_list, h=F)$V1)
@@ -62,16 +55,17 @@ if(length(control_genes)==0){
 # Filtering data table
 data_ctrl = data[control_genes,]
 
-# Excluding constant genes if scaling on row
+# Excluding constant genes if scaling on rows
 if(scale_rows){
   var = apply(data_ctrl, 1, var)
   data_ctrl = data_ctrl[var!=0,]
   scale_value = "row"
-} else{
+} else {
   scale_value = "none"
 }
 
 # Annotations for heatmap
+meta = colData(rna_exp)
 if(annot[1]!=""){
   if(sum(!annot%in%colnames(meta))>0){
     stop("Annotations for categorical variables must be names of metadata columns. If more than one variable are provided, they must be comma-separated with no blank spaces (e.g. treatment,group)")
@@ -114,7 +108,7 @@ write.table(data_ctrl, "control_genes_exprs.txt", quote=F, row.names=F, col.name
 
 # Saving package versions
 x = sessionInfo()
-my_pkgs = c(paste(" "," "," ","R: ",x$R.version$major,".",x$R.version$minor, sep=""))
+my_pkgs = c()
 for(i in 1:length(x$otherPkgs)){
   my_pkgs = c(my_pkgs, paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, sep=""))
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-
+options(warn=-1)
 suppressMessages(library("optparse"))
 suppressMessages(library("enrichR"))
 suppressMessages(library("openxlsx"))
@@ -16,7 +16,7 @@ parser<-OptionParser(usage = "%prog [options] dge_toptable",
                      'dge_toptable' is the path of the DGE toptable from which significant genes are extracted. The DGE toptable must have the following structure:
                      .META: dge_toptable
                         1. gene names
-                        2. baseMean
+                        2. baseMean (average expression)
                         3. log2FoldChange
                         4. pvalue
                         5. padj (FDR)")
@@ -41,7 +41,7 @@ enrich.databases <- c("GO_Biological_Process_2023",
                       "GO_Molecular_Function_2023",
                       "Reactome_2022",
                       "KEGG_2021_Human",
-                      "WikiPathways_2024_Human",
+                  #    "WikiPathways_2024_Human",
                       "BioCarta_2016",
                       "MSigDB_Hallmark_2020")
 # Looking for more recent versions:
@@ -74,17 +74,15 @@ if(length(my_genes_down)>=5){
 }
 
 
-
 # Saving package versions
 x = sessionInfo()
-my_pkgs = c(paste(" "," "," ","R: ",x$R.version$major,".",x$R.version$minor, sep=""))
+my_pkgs = c()
 for(i in 1:length(x$otherPkgs)){
   my_pkgs = c(my_pkgs, paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, sep=""))
 }
 pkgVersion = file("R_pkgs_versions.txt")
 writeLines(my_pkgs, pkgVersion)
 close(pkgVersion)
-
 
 
 

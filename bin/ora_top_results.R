@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-
+options(warn=-1)
 suppressMessages(library("optparse"))
 suppressMessages(library("openxlsx"))
 suppressMessages(library("stringr"))
@@ -59,18 +59,15 @@ fx <- function(x) eval(parse(text=enrichR.table[x,]$Overlap))
 #}
 
 
-
-
 # Saving package versions
 x = sessionInfo()
-my_pkgs = c(paste(" "," "," ","R: ",x$R.version$major,".",x$R.version$minor, sep=""))
+my_pkgs = c()
 for(i in 1:length(x$otherPkgs)){
   my_pkgs = c(my_pkgs, paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, sep=""))
 }
 pkgVersion = file("R_pkgs_versions.txt")
 writeLines(my_pkgs, pkgVersion)
 close(pkgVersion)
-
 
 
 

@@ -1,69 +1,48 @@
 #!/usr/bin/env Rscript
-
+options(warn=-1)
 suppressMessages(library("optparse"))
 suppressMessages(library("edgeR"))
 suppressMessages(library("limma"))
 suppressMessages(library("DESeq2"))
 suppressMessages(library("stringr"))
+suppressMessages(library("SummarizedExperiment"))
 
 ### Script to fit a DGE model using DESeq2
 option_list <- list(
-  make_option(c("-f", "--featureCounts"), action="store_true", default=FALSE, help="Whether the raw counts matrix has been produced using featureCounts or not. If true, gene names are supposed to be reported in the first column, and gene informations (Chr/Start/End/Strand/Length) are supposed to be reported in the 2-6 columns. [default \"%default\"]"),
-  make_option(c("-n", "--num_samples"), action="store", type="integer", default=1, help="Number of samples to define expressed genes. Expressed genes are defined as those genes showing at least 1 cpm on at least 'n' different samples. Usually, this is the size of the smallest sample group. [default \"%default\"]"),
-  make_option(c("-c", "--categorical"), action="store", type="character", default="", help="The name(s) of categorical variables included in the model. They must be the names of the corresponding metadata columns. If multiple names are provided, they must be comma-separated with no blank spaces (e.g. genotype,treatment). The other numerical variables in the model_formula are assumed to be quantitative. [default \"%default\"]"),
+  #make_option(c("-n", "--num_samples"), action="store", type="integer", default=1, help="Number of samples to define expressed genes. Expressed genes are defined as those genes showing at least 1 cpm on at least 'n' different samples. Usually, this is the size of the smallest sample group. [default \"%default\"]"),
+  make_option(c("-e", "--expressed"), action="store", type="double", default=0.5, help="Fraction of samples required to define a gene as expressed. A gene is considered expressed if it shows at least 1 cpm in at least a fraction 'e' of the samples. [default \"%default\"]"),
   make_option(c("-s","--suffix"), action="store", type="character", default="", help="Suffix to append to the output paths, e.g. deseq2_obj_SUFFIX.rds. [default \"%default\"]")
 )
 
-parser<-OptionParser(usage = "%prog [options] input_data metadata model_formula",
+parser<-OptionParser(usage = "%prog [options] rna_object model_formula",
                      option_list = option_list, prog = "dge_deseq2_fit",
                      description = "Fit a differential gene expression (DGE) model using DESeq2. 
-                     'input_data' is the path of a tab delimited file containing the raw counts matrix.
-                     'metadata' is the path of a tab delimited file containing sample metadata. Sample names must be reported in the first column.
+                     'rna_object' is the path of a .rds object containing a Summarized Experiment with expression data and samples metadata.
                      'model_formula' is the formula used for the design of the DESeq2 model. It must start with a '~' and include all the biological and technical variables that should be accounted for (e.g. ~genotype+treatment+batch) with no blank spaces."
 )
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
 opt <- arguments$options
 
-if (length(arguments$args)!=3) {
-  stop("Three arguments must be supplied (input_data)", call.=FALSE)
+if (length(arguments$args)!=2) {
+  stop("Two arguments must be supplied (rna_object and model_formula)", call.=FALSE)
 }
 
-input_data = arguments$args[1]
-metadata = arguments$args[2]
-model_formula = as.formula(arguments$args[3])
-feature_counts = opt$featureCounts
-categorical_vars = str_split_1(opt$categorical, ",")
+rna_object = arguments$args[1]
+model_formula = as.formula(arguments$args[2])
 num_samples = opt$num_samples
 suffix = opt$suffix
 
 
-# Importing raw counts
-counts = read.delim(input_data, h=T, row.names=1, check.names=F)
-if(feature_counts){
-  counts = counts[,6:ncol(counts)]
-}
+# Importing rna_object
+rna_exp = get(load(rna_object))
+counts = rna_exp@assays@data$counts
+
 # Defining expressed genes
-y_all <- DGEList(counts=counts)
-isexpr = rowSums(cpm(y_all)>1) >= num_samples
-
-
-# Importing metadata and matching names
-meta = read.delim(metadata, h=T, row.names=1, check.names=F)
-meta = meta[rownames(meta)%in%colnames(counts),]
-meta = meta[match(colnames(counts), rownames(meta)),]
-# Converting categorical variables into factors
-if(categorical_vars[1]!="" & sum(!categorical_vars%in%colnames(meta))>0){
-  stop("Categorical variables must be names of metadata columns. If more than one variable are provided, they must be comma-separated with no blank spaces (e.g. treatment,group)")
-}
-for(i in 1:ncol(meta)){
-  if(colnames(meta)[i]%in%categorical_vars)
-    meta[,i] = as.factor(meta[,i])
-}
-
+isexpr = rowSums(rna_exp@assays@data$cpm>1) >= num_samples
 
 # Defining the DESeq2 object
-dds = DESeqDataSetFromMatrix(countData=as.matrix(counts[isexpr,]), colData=meta, design=model_formula)
+dds = DESeqDataSetFromMatrix(countData=as.matrix(counts[isexpr,]), colData=colData(rna_exp), design=model_formula)
 
 # DispEst plot for the whole dataset
 dds = estimateSizeFactors(dds)
@@ -77,18 +56,15 @@ dds = DESeq(object=dds, test="Wald", fitType="parametric", betaPrior=FALSE, minR
 save(dds, file=paste("deseq2_obj",suffix,".rds", sep=""))
 
 
-
-
 # Saving package versions
 x = sessionInfo()
-my_pkgs = c(paste(" "," "," ","R: ",x$R.version$major,".",x$R.version$minor, sep=""))
+my_pkgs = c()
 for(i in 1:length(x$otherPkgs)){
   my_pkgs = c(my_pkgs, paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, sep=""))
 }
 pkgVersion = file("R_pkgs_versions.txt")
 writeLines(my_pkgs, pkgVersion)
 close(pkgVersion)
-
 
 
 
