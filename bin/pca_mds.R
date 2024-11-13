@@ -28,7 +28,7 @@ if (length(arguments$args)!=1) {
 }
 
 rna_object = arguments$args[1]
-min_size = opt$num_samples
+expr = opt$expressed
 top_var = opt$top_var
 suffix = opt$suffix
 
@@ -46,7 +46,8 @@ if(rna_exp@metadata$featureCounts){
 }
 
 # Number of expressed genes
-isexpr = rowSums(cpm>1) >= min_size
+num_samples = round(expr*nrow(colData(rna_exp)))
+isexpr = rowSums(cpm>1) >= num_samples
 # Filtering not-expressed genes
 data = data[isexpr,]
 

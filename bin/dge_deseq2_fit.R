@@ -30,7 +30,7 @@ if (length(arguments$args)!=2) {
 
 rna_object = arguments$args[1]
 model_formula = as.formula(arguments$args[2])
-num_samples = opt$num_samples
+expr = opt$expressed
 suffix = opt$suffix
 
 
@@ -39,6 +39,7 @@ rna_exp = get(load(rna_object))
 counts = rna_exp@assays@data$counts
 
 # Defining expressed genes
+num_samples = round(expr*nrow(colData(rna_exp)))
 isexpr = rowSums(rna_exp@assays@data$cpm>1) >= num_samples
 
 # Defining the DESeq2 object
