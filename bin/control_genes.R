@@ -11,7 +11,8 @@ suppressMessages(library("SummarizedExperiment"))
 option_list <- list(
   make_option(c("-a", "--annotations"), action="store", type="character", default="", help="The name(s) of categorical variables to highlight on the top of the heatmap (as annotation column bars). They must be the names of the corresponding metadata columns. If multiple names are provided, they must be comma-separated with no blank spaces (e.g. genotype,treatment). [default \"%default\"]"),
   make_option(c("-d", "--dendrogram"), action="store", type="integer", default=2, help="Whether to perform clustering and show the corresponding dendrogram on rows/genes ('1'), on columns/samples ('2'), both ('3') or none ('0'). [default \"%default\"]"),
-  make_option(c("-s", "--scale_rows"), action="store_true", default=FALSE, help="Whether the values should be centered and scaled in the row direction. If true, genes with constant expression will be removed. [default \"%default\"]")
+  make_option(c("-s", "--scale_rows"), action="store_true", default=FALSE, help="Whether the values should be centered and scaled in the row direction. If true, genes with constant expression will be removed. [default \"%default\"]"),
+  make_option(c("-v", "--version"), action="store_true", default=FALSE, help="Print the list of loaded package versions and exit.")
 )
 
 parser<-OptionParser(usage = "%prog [options] rna_object genes_list
@@ -23,9 +24,20 @@ parser<-OptionParser(usage = "%prog [options] rna_object genes_list
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
 opt <- arguments$options
+version = opt$version
 
-if (length(arguments$args)!=2) {
+if (length(arguments$args)!=2 & !version) {
   stop("Two arguments must be supplied (rna_object and genes_list)", call.=FALSE)
+}
+
+if(version){
+  # Printing package versions
+  x = sessionInfo()
+  cat(paste(" "," "," R: ", x$R.version$major,".", x$R.version$minor, "\n", sep=""))
+  for(i in 1:length(x$otherPkgs)){
+    cat(paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, "\n", sep=""))
+  }
+  quit()
 }
 
 rna_object = arguments$args[1]

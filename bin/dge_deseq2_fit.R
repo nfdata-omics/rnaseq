@@ -11,7 +11,8 @@ suppressMessages(library("SummarizedExperiment"))
 option_list <- list(
   #make_option(c("-n", "--num_samples"), action="store", type="integer", default=1, help="Number of samples to define expressed genes. Expressed genes are defined as those genes showing at least 1 cpm on at least 'n' different samples. Usually, this is the size of the smallest sample group. [default \"%default\"]"),
   make_option(c("-e", "--expressed"), action="store", type="double", default=0.5, help="Fraction of samples required to define a gene as expressed. A gene is considered expressed if it shows at least 1 cpm in at least a fraction 'e' of the samples. [default \"%default\"]"),
-  make_option(c("-s","--suffix"), action="store", type="character", default="", help="Suffix to append to the output paths, e.g. deseq2_obj_SUFFIX.rds. [default \"%default\"]")
+  make_option(c("-s","--suffix"), action="store", type="character", default="", help="Suffix to append to the output paths, e.g. deseq2_obj_SUFFIX.rds. [default \"%default\"]"),
+  make_option(c("-v", "--version"), action="store_true", default=FALSE, help="Print the list of loaded package versions and exit.")
 )
 
 parser<-OptionParser(usage = "%prog [options] rna_object model_formula",
@@ -23,9 +24,20 @@ parser<-OptionParser(usage = "%prog [options] rna_object model_formula",
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
 opt <- arguments$options
+version = opt$version
 
-if (length(arguments$args)!=2) {
+if (length(arguments$args)!=2 & !version) {
   stop("Two arguments must be supplied (rna_object and model_formula)", call.=FALSE)
+}
+
+if(version){
+  # Printing package versions
+  x = sessionInfo()
+  cat(paste(" "," "," R: ", x$R.version$major,".", x$R.version$minor, "\n", sep=""))
+  for(i in 1:length(x$otherPkgs)){
+    cat(paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, "\n", sep=""))
+  }
+  quit()
 }
 
 rna_object = arguments$args[1]
@@ -55,17 +67,6 @@ dev.off()
 # Fitting models
 dds = DESeq(object=dds, test="Wald", fitType="parametric", betaPrior=FALSE, minReplicatesForReplace=7, parallel=F)
 save(dds, file=paste("deseq2_obj",suffix,".rds", sep=""))
-
-
-# Saving package versions
-x = sessionInfo()
-my_pkgs = c()
-for(i in 1:length(x$otherPkgs)){
-  my_pkgs = c(my_pkgs, paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, sep=""))
-}
-pkgVersion = file("R_pkgs_versions.txt")
-writeLines(my_pkgs, pkgVersion)
-close(pkgVersion)
 
 
 

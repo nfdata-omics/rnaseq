@@ -7,7 +7,8 @@ suppressMessages(library("stringr"))
 ### Script to fit a DGE model using DESeq2
 option_list <- list(
   make_option(c("-F", "--FDR"), action="store", type="double", default=0.05, help="The FDR cutoff to define significant genes. [default \"%default\"]"),
-  make_option(c("-s","--suffix"), action="store", type="character", default="", help="Suffix to append to the output filenames, e.g. deseq2_toptable.variable_num_vs_denom_SUFFIX.txt. [default \"%default\"]")
+  make_option(c("-s","--suffix"), action="store", type="character", default="", help="Suffix to append to the output filenames, e.g. deseq2_toptable.variable_num_vs_denom_SUFFIX.txt. [default \"%default\"]"),
+  make_option(c("-v", "--version"), action="store_true", default=FALSE, help="Print the list of loaded package versions and exit.")
 )
 ### change logFC names
 parser<-OptionParser(usage = "%prog [options] input_model contrast",
@@ -22,9 +23,20 @@ parser<-OptionParser(usage = "%prog [options] input_model contrast",
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
 opt <- arguments$options
+version = opt$version
 
-if (length(arguments$args)!=2) {
+if (length(arguments$args)!=2 & !version) {
   stop("Two arguments must be supplied (input_model and contrast)", call.=FALSE)
+}
+
+if(version){
+  # Printing package versions
+  x = sessionInfo()
+  cat(paste(" "," "," R: ", x$R.version$major,".", x$R.version$minor, "\n", sep=""))
+  for(i in 1:length(x$otherPkgs)){
+    cat(paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, "\n", sep=""))
+  }
+  quit()
 }
 
 input_model = arguments$args[1]
@@ -55,15 +67,6 @@ colnames(toptable)[1] = "gene_name"
 write.table(toptable, paste("deseq2_toptable.",variable,"_",num,"_vs_",denom,suffix,".txt", sep=""), row.names=F, col.names=T, quote=F, sep="\t")
 
 
-# Saving package versions
-x = sessionInfo()
-my_pkgs = c()
-for(i in 1:length(x$otherPkgs)){
-  my_pkgs = c(my_pkgs, paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, sep=""))
-}
-pkgVersion = file("R_pkgs_versions.txt")
-writeLines(my_pkgs, pkgVersion)
-close(pkgVersion)
 
 
 

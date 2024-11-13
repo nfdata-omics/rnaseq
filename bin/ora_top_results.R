@@ -7,7 +7,8 @@ suppressMessages(library("stringr"))
 ### Script to extract the most significantly enriched pathways from all the enrichR results.
 option_list <- list(
   make_option(c("-F", "--FDR"), action="store", type="double", default=0.05, help="The FDR cutoff to define significant pathways. [default \"%default\"]"),
-  make_option(c("-n", "--num"), action="store", type="integer", default=25, help="The number of top most significantly enriched pathways to extract. [default \"%default\"]")
+  make_option(c("-n", "--num"), action="store", type="integer", default=25, help="The number of top most significantly enriched pathways to extract. [default \"%default\"]"),
+  make_option(c("-v", "--version"), action="store_true", default=FALSE, help="Print the list of loaded package versions and exit.")
 )
 
 parser<-OptionParser(usage = "%prog [options] enrichr_full_output",
@@ -17,9 +18,20 @@ parser<-OptionParser(usage = "%prog [options] enrichr_full_output",
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
 opt <- arguments$options
+version = opt$version
 
-if (length(arguments$args)!=1) {
+if (length(arguments$args)!=1 & !version) {
   stop("One argument must be supplied (enrichr_full_output)", call.=FALSE)
+}
+
+if(version){
+  # Printing package versions
+  x = sessionInfo()
+  cat(paste(" "," "," R: ", x$R.version$major,".", x$R.version$minor, "\n", sep=""))
+  for(i in 1:length(x$otherPkgs)){
+    cat(paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, "\n", sep=""))
+  }
+  quit()
 }
 
 file = arguments$args[1]
@@ -59,15 +71,6 @@ fx <- function(x) eval(parse(text=enrichR.table[x,]$Overlap))
 #}
 
 
-# Saving package versions
-x = sessionInfo()
-my_pkgs = c()
-for(i in 1:length(x$otherPkgs)){
-  my_pkgs = c(my_pkgs, paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, sep=""))
-}
-pkgVersion = file("R_pkgs_versions.txt")
-writeLines(my_pkgs, pkgVersion)
-close(pkgVersion)
 
 
 

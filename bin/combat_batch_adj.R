@@ -8,7 +8,8 @@ suppressMessages(library("SummarizedExperiment"))
 ### Script to perform batch correction using the ComBat_seq function from package sva: https://bioconductor.org/packages/release/bioc/vignettes/sva/inst/doc/sva.pdf 
 
 option_list <- list(
-  make_option(c("-k", "--keep"), action="store", type="character", default="", help="The name(s) of the metadata column(s) containing biological groups to preserve (signals from these variables are kept in data after adjustment). If multiple names are provided, they must be comma-separated with no blank spaces (e.g. variable1,variable2). Only categorical variables could be included. [default \"%default\"]")
+  make_option(c("-k", "--keep"), action="store", type="character", default="", help="The name(s) of the metadata column(s) containing biological groups to preserve (signals from these variables are kept in data after adjustment). If multiple names are provided, they must be comma-separated with no blank spaces (e.g. variable1,variable2). Only categorical variables could be included. [default \"%default\"]"),
+  make_option(c("-v", "--version"), action="store_true", default=FALSE, help="Print the list of loaded package versions and exit.")
 )
 
 parser<-OptionParser(usage = "%prog [options] rna_object batch",
@@ -20,9 +21,20 @@ parser<-OptionParser(usage = "%prog [options] rna_object batch",
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
 opt <- arguments$options
+version = opt$version
 
-if (length(arguments$args)!=2) {
+if (length(arguments$args)!=2 & !version) {
   stop("Two arguments must be supplied (rna_object and batch)", call.=FALSE)
+}
+
+if(version){
+  # Printing package versions
+  x = sessionInfo()
+  cat(paste(" "," "," R: ", x$R.version$major,".", x$R.version$minor, "\n", sep=""))
+  for(i in 1:length(x$otherPkgs)){
+    cat(paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, "\n", sep=""))
+  }
+  quit()
 }
 
 rna_object = arguments$args[1]
@@ -82,16 +94,6 @@ if(rna_exp@metadata$featureCounts){
 write.table(exprs_adj, "counts_batch_adj.txt", quote=F, row.names=F, col.names=T, sep="\t")
 
 
-
-# Saving package versions
-x = sessionInfo()
-my_pkgs = c()
-for(i in 1:length(x$otherPkgs)){
-  my_pkgs = c(my_pkgs, paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, sep=""))
-}
-pkgVersion = file("R_pkgs_versions.txt")
-writeLines(my_pkgs, pkgVersion)
-close(pkgVersion)
 
 
 

@@ -8,7 +8,8 @@ suppressMessages(library("SummarizedExperiment"))
 ### Script to setup the summarized experiment object containing raw counts and metadata
 
 option_list <- list(
-  make_option(c("-f", "--featureCounts"), action="store_true", default=FALSE, help="Whether the raw counts matrix has been produced using featureCounts or not. If true, gene names are supposed to be reported in the first column, and gene informations (Chr/Start/End/Strand/Length) are supposed to be reported in the 2-6 columns. If false, only the first column containing gene names is expected. [default \"%default\"]")
+  make_option(c("-f", "--featureCounts"), action="store_true", default=FALSE, help="Whether the raw counts matrix has been produced using featureCounts or not. If true, gene names are supposed to be reported in the first column, and gene informations (Chr/Start/End/Strand/Length) are supposed to be reported in the 2-6 columns. If false, only the first column containing gene names is expected. [default \"%default\"]"),
+  make_option(c("-v", "--version"), action="store_true", default=FALSE, help="Print the list of loaded package versions and exit.")
 )
 
 ################################
@@ -23,9 +24,20 @@ parser<-OptionParser(usage = "%prog [options] raw_counts metadata",
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
 opt <- arguments$options
+version = opt$version
 
-if (length(arguments$args)!=2) {
+if (length(arguments$args)!=2 & !version) {
   stop("Two arguments must be supplied (raw_counts and metadata)", call.=FALSE)
+}
+
+if(version){
+  # Printing package versions
+  x = sessionInfo()
+  cat(paste(" "," "," R: ", x$R.version$major,".", x$R.version$minor, "\n", sep=""))
+  for(i in 1:length(x$otherPkgs)){
+    cat(paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, "\n", sep=""))
+  }
+  quit()
 }
 
 raw_counts = arguments$args[1]
@@ -68,16 +80,6 @@ if(feature_counts){
 # Saving the object
 save(rna_exp, file="rna_SummExp.rds")
 
-
-# Saving package versions
-x = sessionInfo()
-my_pkgs = c()
-for(i in 1:length(x$otherPkgs)){
-  my_pkgs = c(my_pkgs, paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, sep=""))
-}
-pkgVersion = file("R_pkgs_versions.txt")
-writeLines(my_pkgs, pkgVersion)
-close(pkgVersion)
 
 
 

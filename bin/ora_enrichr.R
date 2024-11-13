@@ -7,7 +7,8 @@ suppressMessages(library("openxlsx"))
 ### Script to perform first line functional enrichment using enrichR 
 option_list <- list(
   make_option(c("-F", "--FDR"), action="store", type="double", default=0.05, help="The FDR cutoff to define significant genes. [default \"%default\"]"),
-  make_option(c("-l", "--logfc"), action="store", type="double", default=0, help="The cutoff on log2FC absolute value to define significant genes (in combination with FDR). [default \"%default\"]")
+  make_option(c("-l", "--logfc"), action="store", type="double", default=0, help="The cutoff on log2FC absolute value to define significant genes (in combination with FDR). [default \"%default\"]"),
+  make_option(c("-v", "--version"), action="store_true", default=FALSE, help="Print the list of loaded package versions and exit.")
 )
 
 parser<-OptionParser(usage = "%prog [options] dge_toptable",
@@ -23,9 +24,20 @@ parser<-OptionParser(usage = "%prog [options] dge_toptable",
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
 opt <- arguments$options
+version = opt$version
 
-if (length(arguments$args)!=1) {
+if (length(arguments$args)!=1 & !version) {
   stop("One argument must be supplied (dge_toptable)", call.=FALSE)
+}
+
+if(version){
+  # Printing package versions
+  x = sessionInfo()
+  cat(paste(" "," "," R: ", x$R.version$major,".", x$R.version$minor, "\n", sep=""))
+  for(i in 1:length(x$otherPkgs)){
+    cat(paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, "\n", sep=""))
+  }
+  quit()
 }
 
 dge_toptable = arguments$args[1]
@@ -74,15 +86,6 @@ if(length(my_genes_down)>=5){
 }
 
 
-# Saving package versions
-x = sessionInfo()
-my_pkgs = c()
-for(i in 1:length(x$otherPkgs)){
-  my_pkgs = c(my_pkgs, paste(" "," "," ", x$otherPkgs[[i]]$Package,": ", x$otherPkgs[[i]]$Version, sep=""))
-}
-pkgVersion = file("R_pkgs_versions.txt")
-writeLines(my_pkgs, pkgVersion)
-close(pkgVersion)
 
 
 
