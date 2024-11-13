@@ -68,7 +68,7 @@ if(length(biol_groups)>1){
 
 # Updating the object
 rna_exp@assays@data$combat_adjusted = exprs_to_adj
-save(rna_exp, file=rna_object)
+save(rna_exp, file=paste(substr(rna_object,1,nchar(rna_object)-4), ".batch_adj.rds", sep=""))
 
 exprs_adj = cbind(rownames(exprs_adj), exprs_adj)
 colnames(exprs_adj)[1] = "gene_name"

@@ -57,7 +57,7 @@ if(rna_exp@metadata$featureCounts){
 }
 
 # Updating the object
-save(rna_exp, file=rna_object)
+save(rna_exp, file=paste(substr(rna_object,1,nchar(rna_object)-4),".norm.rds",sep=""))
 
 
 # Saving package versions
