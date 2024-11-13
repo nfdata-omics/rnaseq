@@ -2,6 +2,7 @@
 options(warn=-1)
 suppressMessages(library("optparse"))
 suppressMessages(library("DESeq2"))
+suppressMessages(library("stringr"))
 
 ### Script to fit a DGE model using DESeq2
 option_list <- list(
@@ -9,26 +10,28 @@ option_list <- list(
   make_option(c("-s","--suffix"), action="store", type="character", default="", help="Suffix to append to the output filenames, e.g. deseq2_toptable.variable_num_vs_denom_SUFFIX.txt. [default \"%default\"]")
 )
 ### change logFC names
-parser<-OptionParser(usage = "%prog [options] input_model variable test reference",
+parser<-OptionParser(usage = "%prog [options] input_model contrast",
                      option_list = option_list, prog = "dge_deseq2_results",
                      description = "Extract results from a DGE model fitted with DESeq2. 
                      'input_model' is the path of the DESeq2 object containing the already fitted model.
-                     'variable' is the name of the variable (metadata column) on which the comparison will be performed. It must be one of the variables previously included in the model formula. (e.g. genotype)
-                     'test' is the name of the factor level to be tested. It is the numerator of the log2 Fold Change. (e.g. KO)
-                     'reference' is the name of the factor level to be used as reference. It is the denominator of the log2 Fold Change. (e.g. WT)"
+                     'contrast' is a string of format variable:test:reference, with words separated by colon (:),
+                                where variable is the name of the variable (metadata column) on which the comparison will be performed (e.g. genotype - It must be one of the variables previously included in the model formula.)
+                                test is the name of the factor level to be tested (the numerator of the log2 Fold Change, e.g. KO)
+                                reference is the name of the factor level to be used as reference (the denominator of the log2 Fold Change, e.g. WT)."
 )
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
 opt <- arguments$options
 
-if (length(arguments$args)!=4) {
-  stop("Four arguments must be supplied (input_model, variable, logFC_eval, logFC_ref)", call.=FALSE)
+if (length(arguments$args)!=2) {
+  stop("Two arguments must be supplied (input_model and contrast)", call.=FALSE)
 }
 
 input_model = arguments$args[1]
-variable = arguments$args[2]
-num = arguments$args[3]
-denom = arguments$args[4]
+contrast = str_split_1(arguments$args[2], ":")
+variable = contrast[1]
+num = contrast[2]
+denom = contrast[3]
 fdr = opt$FDR
 suffix = opt$suffix
 
@@ -41,9 +44,9 @@ my_res = results(dds, contrast=c(variable, num, denom), independentFiltering=TRU
 my_res = my_res[order(my_res$pvalue, decreasing=F),]
 capture.output(summary(my_res, alpha=fdr), file=paste("dge_summary.",variable,"_",num,"_vs_",denom,suffix,".txt", sep=""))
 
-#pdf(paste("MAplot.",variable,"_",num,"_vs_",denom,".pdf", sep=""))
-#DESeq2::plotMA(my_res, ylim=c(-6,6), alpha=fdr, main=paste(num," vs ",denom, sep=""))
-#dev.off()
+pdf(paste("MAplot.",variable,"_",num,"_vs_",denom,".pdf", sep=""))
+DESeq2::plotMA(my_res, ylim=c(-6,6), alpha=fdr, main=paste(num," vs ",denom, sep=""))
+dev.off()
 
 # Saving toptable
 toptable = my_res[,c("baseMean","log2FoldChange","pvalue","padj")]
