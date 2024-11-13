@@ -48,8 +48,8 @@ if(rna_exp@metadata$featureCounts){
 # Importing control genes
 control_genes = as.character(read.delim(genes_list, h=F)$V1)
 control_genes = control_genes[control_genes%in%rownames(data)]
-if(length(control_genes)==0){
-  stop("No control genes were retrieved in the expression matrix. Check consistency between the expression data and the supplied list of genes.")
+if(length(control_genes)<=1){
+  stop("Only one or zero control genes were retrieved in the expression matrix. Check consistency between the expression data and the supplied list of genes.")
 }
 
 # Filtering data table
@@ -59,6 +59,9 @@ data_ctrl = data[control_genes,]
 if(scale_rows){
   var = apply(data_ctrl, 1, var)
   data_ctrl = data_ctrl[var!=0,]
+  if(is.null(dim(data_ctrl))){
+    stop("All the selected genes have a constant expression across the samples and were excluded. 
+         (It is possible that one single gene has a non-constant expression, but heatmap for a single gene is not supported.)")}
   scale_value = "row"
 } else {
   scale_value = "none"
