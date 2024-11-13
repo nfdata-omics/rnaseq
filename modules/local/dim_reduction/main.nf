@@ -1,4 +1,4 @@
-process CONTROL_GENE_HEATMAP {
+process DIM_REDUCTION {
     tag "$meta.id"
     label 'process_single'
 
@@ -6,13 +6,14 @@ process CONTROL_GENE_HEATMAP {
 
     input:
     tuple val(meta), path(normalized_counts)
-    path gene_list
-    val covariates_highlight
+    val frac_samples
 
     output:
-    path "heatmap_control_genes.pdf", emit: heatmap_pdf
-    path "control_genes_exprs.txt",   emit: count_subset
-    path "versions.yml"            ,  emit: versions
+    path "versions.yml"                , emit: versions
+    path "PCA_scores.txt"              , emit: pca
+    path "PCA_explained_variance.txt"  , emit: pca_var
+    path "MDS_scores.txt"              , emit: mds
+    path "exprs_data_to_hc_dendrog.txt", emit: red_matrix
 
     when:
     task.ext.when == null || task.ext.when
@@ -23,25 +24,26 @@ process CONTROL_GENE_HEATMAP {
     }
     args = task.ext.args ?: ''
     """
-    control_genes.R $args -s -a $covariates_highlight \
-        $normalized_counts $gene_list
+    pca_mds.R $args -e $frac_samples --top_var 5000 $normalized_counts
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         R: \$(R --version)
     END_VERSIONS
-    control_genes.R --versions >> versions.yml
+    pca_mds.R --versions >> versions.yml
     """
 
     stub:
     """
-    touch control_genes_exprs.txt
-    touch heatmap_control_genes.pdf
+    touch PCA_scores.txt
+    touch PCA_explained_variance.txt
+    touch MDS_scores.txt
+    touch exprs_data_to_hc_dendrog.txt
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
         R: \$(R --version)
     END_VERSIONS
-    control_genes.R --versions >> versions.yml
+    pca_mds.R --versions >> versions.yml
     """
 }
