@@ -1,14 +1,13 @@
 #!/usr/bin/env Rscript
 options(warn=-1)
 suppressMessages(library("optparse"))
-suppressMessages(library("edgeR"))
-suppressMessages(library("limma"))
 suppressMessages(library("SummarizedExperiment"))
 
 ### Script to setup the summarized experiment object containing raw counts and metadata
 
 option_list <- list(
-  make_option(c("-f", "--featureCounts"), action="store_true", default=FALSE, help="Whether the raw counts matrix has been produced using featureCounts or not. If true, gene names are supposed to be reported in the first column, and gene informations (Chr/Start/End/Strand/Length) are supposed to be reported in the 2-6 columns. If false, only the first column containing gene names is expected. [default \"%default\"]"),
+  make_option(c("-c","--col_num"), action="store", type="integer", default=1, help="Number of columns in the raw_counts matrix containing gene information (e.g. GeneID, Chr, Start, End, Strand, Length). These columns must be the first ones of the matrix. If gene lengths are provided, the corresponding column must be called 'Length'. [default \"%default\"]"),
+  make_option(c("-i","--gene_id"), action="store", type="integer", default=1, help="The column in the raw_counts matrix that contains the gene name identifiers. Gene identifiers should be unique; if they are not, a sequential number will be automatically added to make each identifier unique. [default \"%default\"]"),
   make_option(c("-v", "--version"), action="store_true", default=FALSE, help="Print the list of loaded package versions and exit.")
 )
 
@@ -19,7 +18,11 @@ parser<-OptionParser(usage = "%prog [options] raw_counts metadata",
                      option_list = option_list, prog = "rnaseq_obj_setup",
                      description = "Setup the summarized experiment object containing raw counts and sample metadata, that will be used as input for the subsequent pipeline steps. 
                      'raw_counts' is the path of a tab delimited file containing the raw counts matrix.
-                     'metadata' is the path of a csv file containing sample metadata. Sample names must be reported in the first column. Columns containing numbers are assumed to be quantitative variables."
+                     'metadata' is the path of a csv file containing sample metadata. Sample names must be reported in the first column. Columns containing numbers are assumed to be quantitative variables.
+                     .META: raw_counts
+                        1 ... c : gene information (e.g. GeneID, position, strand, Length, ...)
+                        i (<= c): gene IDs
+                        c+1 ... : expression values"
 )
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
@@ -42,10 +45,21 @@ if(version){
 
 raw_counts = arguments$args[1]
 metadata = arguments$args[2]
-feature_counts = opt$featureCounts
+col_num = opt$col_num
+id = opt$gene_id
+
+if(id > col_num){
+  stop("The column containing gene identifiers must be one of the first #col_num columns!")
+}
 
 # Importing raw counts
-counts = read.delim(raw_counts, h=T, row.names=1, check.names=F)
+counts = read.delim(raw_counts, h=T)
+# If gene identifiers are not unique, they will be forced to be
+if(length(unique(counts[,id]))<length(counts[,id])){
+  counts[,id] = make.unique(counts[,id])
+}
+rownames(counts) = counts[,id]
+counts = counts[,-id]
 
 # Importing metadata
 meta = read.csv(metadata, h=T, row.names=1, check.names=F)
@@ -56,26 +70,29 @@ for(i in 1:ncol(meta)){
   }
 }
 
+# Matching names
+meta = meta[rownames(meta)%in%colnames(counts)[(col_num):ncol(counts)],]
+meta = meta[match(colnames(counts)[(col_num):ncol(counts)], rownames(meta)),]
+
 # Creating the summarized exp object
-if(feature_counts){
+if(col_num==1){
   
-  # Matching names
-  meta = meta[rownames(meta)%in%colnames(counts)[6:ncol(counts)],]
-  meta = meta[match(colnames(counts)[6:ncol(counts)], rownames(meta)),]
-  # Creating the summarized experiment object
-  rna_exp = SummarizedExperiment(assays=list(counts=as.matrix(counts[,6:ncol(counts)])), rowData=as.data.frame(counts[,1:5]), colData=meta)
-  metadata(rna_exp)$featureCounts = TRUE
+  rna_exp = SummarizedExperiment(assays=list(counts=as.matrix(counts)), rowData=as.data.frame(rownames(counts)), colData=meta)
+  metadata(rna_exp)$gene_length = FALSE
   
 } else {
   
-  # Matching names
-  meta = meta[rownames(meta)%in%colnames(counts),]
-  meta = meta[match(colnames(counts), rownames(meta)),]
-  # Summ exp obj
-  rna_exp = SummarizedExperiment(assays=list(counts=as.matrix(counts)), rowData=as.data.frame(rownames(counts)), colData=meta)
-  metadata(rna_exp)$featureCounts = FALSE
+  rna_exp = SummarizedExperiment(assays=list(counts=as.matrix(counts[,(col_num):ncol(counts)])), rowData=as.data.frame(counts[,1:(col_num-1)]), colData=meta)
+  # Is gene length information available?
+  if("Length"%in%colnames(counts)[1:(col_num-1)]){
+    metadata(rna_exp)$gene_length = TRUE
+  } else {
+    metadata(rna_exp)$gene_length = FALSE
+  }
   
 }
+
+
 
 # Saving the object
 save(rna_exp, file="rna_SummExp.rds")
