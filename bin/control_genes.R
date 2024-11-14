@@ -19,7 +19,7 @@ parser<-OptionParser(usage = "%prog [options] rna_object genes_list
                      'rna_object' is the path of a .rds object containing a Summarized Experiment with expression data and samples metadata.
                      'genes_list' is the path to a tab-delimited file containing the list of control genes to evaluate. Each gene must be reported in a different row, with no header. Gene encoding must be the same used for the raw counts matrix.",
                      option_list = option_list, prog = "control_genes",
-                     description = "Extract the expression values (cpm or rpkm for featureCounts produced data) of specific control genes, and produce the corresponding heatmap."
+                     description = "Extract the expression values (cpm or rpkm, depending on whether gene length information was originally available) of specific control genes, and produce the corresponding heatmap."
 )
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
@@ -50,8 +50,8 @@ scale_rows = opt$scale_rows
 # Importing rna_object
 rna_exp = get(load(rna_object))
 
-# Extracting expression data - cpm or rpkm, depending on whether the data were produced using featureCounts or not
-if(rna_exp@metadata$featureCounts){
+# Extracting expression data - cpm or rpkm, depending on whether gene length information was available
+if(rna_exp@metadata$gene_length){
   data = rna_exp@assays@data$log_norm_rpkm
 } else {
   data = rna_exp@assays@data$cpm

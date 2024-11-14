@@ -49,7 +49,7 @@ suffix = opt$suffix
 rna_exp = get(load(rna_object))
 
 # Importing expression values
-if(rna_exp@metadata$featureCounts){
+if(rna_exp@metadata$gene_length){
   data = rna_exp@assays@data$log_norm_rpkm
   cpm = rna_exp@assays@data$cpm
 } else {

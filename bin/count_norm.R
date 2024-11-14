@@ -13,7 +13,7 @@ option_list <- list(
 
 parser<-OptionParser(usage = "%prog [options] rna_object",
                      option_list = option_list, prog = "count_norm",
-                     description = "Perform raw counts normalization into cpm and possibly rpkm. Rpkm are calculated only if raw counts were originally produced using featureCounts.
+                     description = "Perform raw counts normalization into cpm and possibly rpkm. Rpkm are calculated only if gene length information was available in the original raw_counts matrix.
                      'rna_object' is the path of a .rds object containing a Summarized Experiment with raw counts and samples metadata."
 )
 
@@ -51,7 +51,7 @@ colnames(cpm)[1] = "gene_name"
 write.table(cpm, "cpm.txt", quote=F, row.names=F, col.names=T, sep="\t")
 rna_exp@assays@data$cpm = cpm(y_all, log=FALSE)
 
-if(rna_exp@metadata$featureCounts){
+if(rna_exp@metadata$gene_length){
 	
 	# Log-norm-rpkm (TMM normalization)
 	y_all = calcNormFactors(y_all, method="TMM")

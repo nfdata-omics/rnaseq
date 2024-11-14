@@ -86,7 +86,7 @@ exprs_adj = cbind(rownames(exprs_adj), exprs_adj)
 colnames(exprs_adj)[1] = "gene_name"
 
 # Since the output is formatted as an adjusted count matrix with integer values, I re-attach gene information if available
-if(rna_exp@metadata$featureCounts){
+if(rna_exp@metadata$gene_length){
   exprs_adj = cbind(exprs_adj[,1], rowData(rna_exp), exprs_adj[,2:ncol(exprs_adj)])
   colnames(exprs_adj)[1] = "gene_name"
 }

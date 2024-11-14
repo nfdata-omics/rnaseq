@@ -78,6 +78,7 @@ meta = meta[match(colnames(counts)[(col_num):ncol(counts)], rownames(meta)),]
 if(col_num==1){
   
   rna_exp = SummarizedExperiment(assays=list(counts=as.matrix(counts)), rowData=as.data.frame(rownames(counts)), colData=meta)
+  colnames(rowData(rna_exp)) = "geneID"
   metadata(rna_exp)$gene_length = FALSE
   
 } else {
