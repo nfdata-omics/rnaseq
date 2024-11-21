@@ -1,4 +1,4 @@
-process DIM_REDUCTION {
+process PCA_AND_MDS {
     tag "$meta.id"
     label 'process_single'
 
@@ -28,9 +28,8 @@ process DIM_REDUCTION {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        R: \$(R --version)
     END_VERSIONS
-    pca_mds.R --versions >> versions.yml
+    pca_mds.R --version >> versions.yml
     """
 
     stub:
@@ -42,8 +41,7 @@ process DIM_REDUCTION {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        R: \$(R --version)
     END_VERSIONS
-    pca_mds.R --versions >> versions.yml
+    pca_mds.R --version >> versions.yml
     """
 }

@@ -3,15 +3,18 @@
     IMPORT MODULES / SUBWORKFLOWS / FUNCTIONS
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
-include { FASTQC                 } from '../modules/nf-core/fastqc/main'
-include { MULTIQC                } from '../modules/nf-core/multiqc/main'
-include { paramsSummaryMap       } from 'plugin/nf-schema'
-include { paramsSummaryMultiqc   } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { softwareVersionsToYAML } from '../subworkflows/nf-core/utils_nfcore_pipeline'
-include { methodsDescriptionText } from '../subworkflows/local/utils_nfcore_rnaseq_pipeline'
-include { COUNT_DOWNSTREAM }       from '../subworkflows/local/count_downstream'
+include { FASTQC                 }  from '../modules/nf-core/fastqc/main'
+include { MULTIQC                }  from '../modules/nf-core/multiqc/main'
+include { paramsSummaryMap       }  from 'plugin/nf-schema'
+include { paramsSummaryMultiqc   }  from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { softwareVersionsToYAML }  from '../subworkflows/nf-core/utils_nfcore_pipeline'
+include { methodsDescriptionText }  from '../subworkflows/local/utils_nfcore_rnaseq_pipeline'
+include { DIFFERENTIAL_EXPRESSION } from '../subworkflows/local/differential_expression'
+include { DIM_REDUCTION }           from '../subworkflows/local/dim_reduction'
 
 include { PICARD_COLLECTRNASEQMETRICS } from '../modules/nf-core/picard/collectrnaseqmetrics/main'
+include { SAMPLE_FILTER }               from '../modules/local/sample_filter'
+include { SPLIT_COUNT_MATRIX }          from '../modules/local/split_count_matrix'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -23,8 +26,8 @@ workflow RNASEQ {
 
     take:
     ch_samplesheet // channel: samplesheet read in from --input
-    ch_counts      // channel: count matrix file read as --counts
-    ch_metadata    // channel: sample metadata table read as --metadata
+    counts         // channel: count matrix file read as --counts
+    metadata       // channel: sample metadata table read as --metadata
 
     main:
 
@@ -51,7 +54,7 @@ workflow RNASEQ {
     ch_samplesheet
         .filter{ it[0].data_type == "bam" }
         .map {
-            meta, fastq1s, fastq2s, bams ->
+            meta, _fastq1s, _fastq2s, bams ->
                 return [ meta, bams ]
         }
         .set { ch_bam }
@@ -71,10 +74,67 @@ workflow RNASEQ {
     // DOWNSTREAM ANALYSIS OF COUNT MATRIX
     //
 
-    COUNT_DOWNSTREAM(
+    if ( params.exclude_list ) {
+        SAMPLE_FILTER(
+            counts,
+            params.exclude_list
+        )
+        counts_filt = SAMPLE_FILTER.out.filtered
+        ch_versions = ch_versions.mix(SAMPLE_FILTER.out.versions)
+    } else {
+        counts_filt = counts
+    }
+
+    //
+    // DIMENSIONALITY REDUCTION SUBWORKFLOW
+    //
+
+    counts_filt
+        .map { file -> [["id":file.baseName], file] }
+        .set { ch_counts }
+
+    DIM_REDUCTION(
         ch_counts,
-        ch_metadata
+        params.gene_column_nr,
+        params.gene_id_index,
+        metadata,
+        params.frac_expressed
     )
+    ch_versions = ch_versions.mix(DIM_REDUCTION.out.versions)
+
+    // COUNT SUBSETS
+
+    if ( params.split_variable ) {
+        SPLIT_COUNT_MATRIX(
+            counts_filt,
+            params.gene_column_nr,
+            metadata,
+            params.split_variable
+        )
+        counts_split = SPLIT_COUNT_MATRIX.out.matrices.flatten()
+        ch_versions = ch_versions.mix(SPLIT_COUNT_MATRIX.out.versions)
+    } else {
+        counts_split = counts_filt
+    }
+
+    counts_split
+        .map { file -> [["id":file.baseName], file] }
+        .set { ch_counts }
+
+    // DEA AND FUNCTIONAL
+
+    DIFFERENTIAL_EXPRESSION(
+        ch_counts,
+        params.gene_column_nr,
+        params.gene_id_index,
+        metadata,
+        params.model_formula,
+        params.comparisons,
+        params.frac_expressed,
+        params.fdr_threshold,
+        params.lfc_threshold,
+    )
+    ch_versions = ch_versions.mix(DIFFERENTIAL_EXPRESSION.out.versions)
 
     //
     // Collate and save software versions
@@ -86,7 +146,6 @@ workflow RNASEQ {
             sort: true,
             newLine: true
         ).set { ch_collated_versions }
-
 
     //
     // MODULE: MultiQC

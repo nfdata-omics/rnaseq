@@ -28,9 +28,8 @@ process ENRICHR {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        R: \$(R --version)
     END_VERSIONS
-    ora_enrichr.R --versions >> versions.yml
+    ora_enrichr.R --version >> versions.yml
     """
 
     stub:
@@ -41,8 +40,7 @@ process ENRICHR {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        R: \$(R --version)
     END_VERSIONS
-    ora_enrichr.R --versions >> versions.yml
+    ora_enrichr.R --version >> versions.yml
     """
 }

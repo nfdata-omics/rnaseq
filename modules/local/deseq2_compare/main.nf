@@ -9,8 +9,8 @@ process DESEQ2_COMPARE {
     val comparison
 
     output:
-    tuple val([id:"$meta.id", df:"$comparison"]), path("*.txt"), emit: dge
-    path "versions.yml"                                        , emit: versions
+    tuple val(meta), path("*.txt"), emit: dge
+    path "versions.yml"           , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -25,9 +25,8 @@ process DESEQ2_COMPARE {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        R: \$(R --version)
     END_VERSIONS
-    dge_deseq2_results.R --versions >> versions.yml
+    dge_deseq2_results.R --version >> versions.yml
     """
 
     stub:
@@ -36,8 +35,7 @@ process DESEQ2_COMPARE {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        R: \$(R --version)
     END_VERSIONS
-    dge_deseq2_results.R --versions >> versions.yml
+    dge_deseq2_results.R --version >> versions.yml
     """
 }

@@ -17,7 +17,7 @@ option_list <- list(
 
 parser<-OptionParser(usage = "%prog [options] rna_object model_formula",
                      option_list = option_list, prog = "dge_deseq2_fit",
-                     description = "Fit a differential gene expression (DGE) model using DESeq2. 
+                     description = "Fit a differential gene expression (DGE) model using DESeq2.
                      'rna_object' is the path of a .rds object containing a Summarized Experiment with expression data and samples metadata.
                      'model_formula' is the formula used for the design of the DESeq2 model. It must start with a '~' and include all the biological and technical variables that should be accounted for (e.g. ~genotype+treatment+batch) with no blank spaces."
 )
@@ -55,7 +55,7 @@ num_samples = round(expr*nrow(colData(rna_exp)))
 isexpr = rowSums(rna_exp@assays@data$cpm>1) >= num_samples
 
 # Defining the DESeq2 object
-dds = DESeqDataSetFromMatrix(countData=as.matrix(counts[isexpr,]), colData=colData(rna_exp), design=model_formula)
+dds = DESeqDataSetFromMatrix(countData=round(as.matrix(counts[isexpr,])), colData=colData(rna_exp), design=model_formula)
 
 # DispEst plot for the whole dataset
 dds = estimateSizeFactors(dds)

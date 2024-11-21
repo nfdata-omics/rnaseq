@@ -22,13 +22,12 @@ process DESEQ2_FIT {
     }
     args = task.ext.args ?: ''
     """
-    dge_deseq2_fit.R $args -e $frac_samples $counts $model_formula
+    dge_deseq2_fit.R $args -e $frac_samples $counts \"$model_formula\"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        R: \$(R --version)
     END_VERSIONS
-    dge_deseq2_fit.R --versions >> versions.yml
+    dge_deseq2_fit.R --version >> versions.yml
     """
 
     stub:
@@ -39,6 +38,6 @@ process DESEQ2_FIT {
     "${task.process}":
         R: \$(R --version)
     END_VERSIONS
-    dge_deseq2_fit.R --versions >> versions.yml
+    dge_deseq2_fit.R --version >> versions.yml
     """
 }
