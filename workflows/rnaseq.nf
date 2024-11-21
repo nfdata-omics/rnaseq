@@ -37,7 +37,7 @@ workflow RNASEQ {
     ch_samplesheet
         .filter{ it[0].data_type == "fastq" }
         .map {
-            meta, fastq1s, fastq2s, bams ->
+            meta, fastq1s, fastq2s, _bams ->
                 return [ meta, fastq1s + fastq2s ]
         }
         .set { ch_fastqs }
