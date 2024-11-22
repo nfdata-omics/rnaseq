@@ -2,22 +2,19 @@
 include { OBJ_CONSTRUCTION }      from '../../modules/local/obj_construction/main'
 include { R_COUNT_NORM }          from '../../modules/local/r_count_norm/main'
 include { CONTROL_GENE_HEATMAP }  from '../../modules/local/control_gene_heatmap/main'
-include { DIM_REDUCTION }         from '../../modules/local/dim_reduction/main'
-include { DESEQ2_FIT }            from '../../modules/local/deseq2_fit/main'
-include { DESEQ2_COMPARE }        from '../../modules/local/deseq2_compare/main'
-include { ENRICHR }               from '../../modules/local/enrichr/main'
+include { PCA_AND_MDS }           from '../../modules/local/pca_and_mds/main'
 
-workflow COUNT_DOWNSTREAM {
+workflow DIM_REDUCTION {
     take:
     count_matrix
+    gene_column_nr
+    gene_id_index
     metadata_table
-    model_formula
-    comparisons_ch
     frac_expressed
-    fdr_threshold
-    lfc_threshold
 
     main:
+
+    ch_versions = Channel.empty()
 
     //
     // R-OBJECT CONSTRUCTION
@@ -27,8 +24,11 @@ workflow COUNT_DOWNSTREAM {
     //
     OBJ_CONSTRUCTION(
         count_matrix,
+        gene_column_nr,
+        gene_id_index,
         metadata_table
     )
+    ch_versions = ch_versions.mix(OBJ_CONSTRUCTION.out.versions)
 
     //
     // COUNT NORMALIZATION
@@ -36,6 +36,7 @@ workflow COUNT_DOWNSTREAM {
     R_COUNT_NORM(
         OBJ_CONSTRUCTION.out.rds
     )
+    ch_versions = ch_versions.mix(R_COUNT_NORM.out.versions)
 
     //
     // HEATMAP OF CONTROL GENES
@@ -45,39 +46,18 @@ workflow COUNT_DOWNSTREAM {
         "${workflow.projectDir}/assets/hsapiens_ctrl_genes.txt",
         ""
     )
+    ch_versions = ch_versions.mix(CONTROL_GENE_HEATMAP.out.versions)
 
     //
-    // DIMENSIONALITY REDUCTION
+    // COMPUTE PCA AND MDS COORDINATES
     //
-    DIM_REDUCTION(
+    PCA_AND_MDS(
         R_COUNT_NORM.out.rds,
         frac_expressed
     )
+    ch_versions = ch_versions.mix(PCA_AND_MDS.out.versions)
 
-    //
-    // DESEQ2 MODEL FIT
-    //
-    DESEQ2_FIT(
-        R_COUNT_NORM.out.rds,
-        model_formula,
-        frac_expressed
-    )
-
-    //
-    // DESEQ2 COMPARISONS
-    //
-    DESEQ2_COMPARE(
-        DESEQ2_FIT.out.rds,
-        comparisons_ch
-    )
-
-    //
-    // FUNCTIONAL ANALYSIS: ENRICHR
-    //
-    ENRICHR(
-        DESEQ2_COMPARE.out.dge,
-        fdr_threshold,
-        lfc_threshold
-    )
+    emit:
+    versions    = ch_versions
 
 }

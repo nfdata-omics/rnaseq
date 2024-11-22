@@ -22,15 +22,15 @@ process CONTROL_GENE_HEATMAP {
         exit 1, "Conda environments cannot be used when using the this pipeline. Please use docker or singularity containers."
     }
     args = task.ext.args ?: ''
+    cov_list = covariates_highlight ? "-a $covariates_highlight" : ''
     """
-    control_genes.R $args -s -a $covariates_highlight \
+    control_genes.R $args -s $cov_list \
         $normalized_counts $gene_list
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        R: \$(R --version)
     END_VERSIONS
-    control_genes.R --versions >> versions.yml
+    control_genes.R --version >> versions.yml
     """
 
     stub:
@@ -40,8 +40,7 @@ process CONTROL_GENE_HEATMAP {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        R: \$(R --version)
     END_VERSIONS
-    control_genes.R --versions >> versions.yml
+    control_genes.R --version >> versions.yml
     """
 }

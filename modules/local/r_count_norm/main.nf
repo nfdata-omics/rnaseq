@@ -21,14 +21,14 @@ process R_COUNT_NORM {
     if (params.enable_conda) {
         exit 1, "Conda environments cannot be used when using the this pipeline. Please use docker or singularity containers."
     }
+    args = task.ext.args ?: ''
     """
-    count_norm. $args $annotated_counts
+    count_norm.R $args $annotated_counts
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        R: \$(R --version)
     END_VERSIONS
-    count_norm.R --versions >> versions.yml
+    count_norm.R --version >> versions.yml
     """
 
     stub:
@@ -39,8 +39,7 @@ process R_COUNT_NORM {
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
-        R: \$(R --version)
     END_VERSIONS
-    count_norm.R --versions >> versions.yml
+    count_norm.R --version >> versions.yml
     """
 }
