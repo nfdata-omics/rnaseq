@@ -19,7 +19,8 @@ parser<-OptionParser(usage = "%prog [options] rna_object model_formula",
                      option_list = option_list, prog = "dge_deseq2_fit",
                      description = "Fit a differential gene expression (DGE) model using DESeq2.
                      'rna_object' is the path of a .rds object containing a Summarized Experiment with expression data and samples metadata.
-                     'model_formula' is the formula used for the design of the DESeq2 model. It must start with a '~' and include all the biological and technical variables that should be accounted for (e.g. ~genotype+treatment+batch) with no blank spaces."
+                     'model_formula' is the formula used for the design of the DESeq2 model. It must start with a '~' and include all the biological and technical variables that should be accounted for (e.g. ~0+genotype+treatment+batch) with no blank spaces.
+                                     If you plan to perform a comparison between aggregated combinations of levels (e.g. treat1/treat2/treat3 vs ctrl), the model formula must start with zero '~0+... ', otherwise zero could be omitted."
 )
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
