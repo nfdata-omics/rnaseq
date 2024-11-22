@@ -15,10 +15,10 @@ parser<-OptionParser(usage = "%prog [options] input_model contrast",
                      option_list = option_list, prog = "dge_deseq2_results",
                      description = "Extract results from a DGE model fitted with DESeq2. 
                      'input_model' is the path of the DESeq2 object containing the already fitted model.
-                     'contrast' is a string of format variable:test:reference, with words separated by colon (:),
-                                where variable is the name of the variable (metadata column) on which the comparison will be performed (e.g. genotype - It must be one of the variables previously included in the model formula.)
-                                test is the name of the factor level to be tested (the numerator of the log2 Fold Change, e.g. KO)
-                                reference is the name of the factor level to be used as reference (the denominator of the log2 Fold Change, e.g. WT)."
+                     'contrast' is a string of format variable:test:reference, with words separated by colon (:), where
+                                - 'variable' is the name of the variable (metadata column) on which the comparison will be performed (e.g. treatment). It must be one of the variables previously included in the model formula;
+                                - 'test' is the name of the factor level to be tested (the numerator of the log2 Fold Change, e.g. treat). If multiple levels should be aggregated, they must be separated by '/' with no blank spaces (e.g. treat1/treat2/treat3);
+                                - 'reference' is the name of the factor level to be used as reference (the denominator of the log2 Fold Change, e.g. ctrl). If multiple levels should be aggregated, they must be separated by '/' with no blank spaces (e.g. ctrl1/ctrl2)."
 )
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
@@ -42,8 +42,12 @@ if(version){
 input_model = arguments$args[1]
 contrast = str_split_1(arguments$args[2], ":")
 variable = contrast[1]
-num = contrast[2]
-denom = contrast[3]
+num = str_split_1(contrast[2], "/")
+n_num = length(num)
+numNames = gsub("/", "_", contrast[2])
+denom = str_split_1(contrast[3], "/")
+n_denom = length(denom)
+denomNames = gsub("/", "_", contrast[3])
 fdr = opt$FDR
 suffix = opt$suffix
 
@@ -51,20 +55,36 @@ suffix = opt$suffix
 dds = get(load(input_model))
 
 # Extracting results
-my_res = results(dds, contrast=c(variable, num, denom), independentFiltering=TRUE, cooksCutoff=FALSE, alpha=fdr)
-# I turn off cooksCutoff for outlier detection, but in the model fitting function there was minRepforReplace=7
-my_res = my_res[order(my_res$pvalue, decreasing=F),]
-capture.output(summary(my_res, alpha=fdr), file=paste("dge_summary.",variable,"_",num,"_vs_",denom,suffix,".txt", sep=""))
+if(n_num>1 | n_denom>1){
+  
+  # Custom list A1,A2,A3... vs B1,B2... contrast
+  num_list = paste(variable, num, sep="")
+  denom_list = paste(variable, denom, sep="")
+  my_res = results(dds, contrast=list(num_list, denom_list), listValues=c(1/n_num, -1/n_denom), independentFiltering=TRUE, cooksCutoff=FALSE, alpha=fdr)
+  # I turn off cooksCutoff for outlier detection, but in the model fitting function there was minRepforReplace=7
+    
+} else {
+  
+  # Direct A vs B contrast
+  my_res = results(dds, contrast=c(variable, num, denom), independentFiltering=TRUE, cooksCutoff=FALSE, alpha=fdr)
+  # I turn off cooksCutoff for outlier detection, but in the model fitting function there was minRepforReplace=7
+  
+}
 
-pdf(paste("MAplot.",variable,"_",num,"_vs_",denom,".pdf", sep=""))
-DESeq2::plotMA(my_res, ylim=c(-6,6), alpha=fdr, main=paste(num," vs ",denom, sep=""))
+my_res = my_res[order(my_res$pvalue, decreasing=F),]
+capture.output(summary(my_res, alpha=fdr), file=paste("dge_summary.",variable,"_",numNames,"_vs_",denomNames,suffix,".txt", sep=""))
+
+
+pdf(paste("MAplot.",variable,"_",numNames,"_vs_",denomNames,".pdf", sep=""))
+DESeq2::plotMA(my_res, ylim=c(-6,6), alpha=fdr, main=paste(numNames," vs ",denomNames, sep=""))
 dev.off()
+
 
 # Saving toptable
 toptable = my_res[,c("baseMean","log2FoldChange","pvalue","padj")]
 toptable = cbind(rownames(toptable), toptable)
 colnames(toptable)[1] = "gene_name"
-write.table(toptable, paste("deseq2_toptable.",variable,"_",num,"_vs_",denom,suffix,".txt", sep=""), row.names=F, col.names=T, quote=F, sep="\t")
+write.table(toptable, paste("deseq2_toptable.",variable,"_",numNames,"_vs_",denomNames,suffix,".txt", sep=""), row.names=F, col.names=T, quote=F, sep="\t")
 
 
 
