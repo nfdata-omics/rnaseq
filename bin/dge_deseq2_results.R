@@ -59,10 +59,16 @@ if(n_num>1 | n_denom>1){
   
   # Custom list A1,A2,A3... vs B1,B2... contrast
   num_list = paste(variable, num, sep="")
+  num_list = num_list[num_list%in%resultsNames(dds)]
+  n_num = length(num)
+  numNames = paste(num_list, collapse="_")
   denom_list = paste(variable, denom, sep="")
+  denom_list = denom_list[denom_list%in%resultsNames(dds)]
+  n_denom = length(denom)
+  denomNames = paste(denom_list, collapse="_")
   my_res = results(dds, contrast=list(num_list, denom_list), listValues=c(1/n_num, -1/n_denom), independentFiltering=TRUE, cooksCutoff=FALSE, alpha=fdr)
   # I turn off cooksCutoff for outlier detection, but in the model fitting function there was minRepforReplace=7
-    
+  
 } else {
   
   # Direct A vs B contrast
