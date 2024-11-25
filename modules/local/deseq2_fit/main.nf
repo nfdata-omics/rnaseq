@@ -2,7 +2,7 @@ process DESEQ2_FIT {
     tag "$meta.id"
     label 'process_single'
 
-    container "docker.io/sddcunit/downstream:rnaseq-1.0.2"
+    container "docker.io/nfdata/bulk_rnaseq:v1.0.0"
 
     input:
     tuple val(meta), path(counts)
