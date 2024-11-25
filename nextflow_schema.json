@@ -151,10 +151,10 @@
                     "fa_icon": "fas fa-greater-than",
                     "description": "List of the conditions pairs to test in the DEA."
                 },
-                "split_variable": {
+                "split_file": {
                     "type": "string",
                     "fa_icon": "fas fa-object-ungroup",
-                    "description": "Repeat the DEA on subsets of the full matrix defined by the value of this variable."
+                    "description": "Repeat the DEA on subsets of the full matrix defined by the file with this path."
                 },
                 "fdr_threshold": {
                     "type": "number",
