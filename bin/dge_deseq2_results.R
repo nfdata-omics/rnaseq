@@ -71,7 +71,6 @@ if(n_num>1 | n_denom>1){
   
 }
 
-my_res = my_res[order(my_res$pvalue, decreasing=F),]
 capture.output(summary(my_res, alpha=fdr), file=paste("dge_summary.",variable,"_",numNames,"_vs_",denomNames,suffix,".txt", sep=""))
 
 
@@ -81,7 +80,9 @@ dev.off()
 
 
 # Saving toptable
-toptable = my_res[,c("baseMean","log2FoldChange","pvalue","padj")]
+n_info = (which(colnames(rowData(dds))=="baseMean")-1)
+toptable = cbind(my_res[,c("baseMean","log2FoldChange","pvalue","padj")], rowData(dds)[,1:n_info])
+toptable = toptable[order(toptable$pvalue, decreasing=F),]
 toptable = cbind(rownames(toptable), toptable)
 colnames(toptable)[1] = "gene_name"
 write.table(toptable, paste("deseq2_toptable.",variable,"_",numNames,"_vs_",denomNames,suffix,".txt", sep=""), row.names=F, col.names=T, quote=F, sep="\t")
