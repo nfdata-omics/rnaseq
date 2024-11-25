@@ -56,7 +56,7 @@ num_samples = round(expr*nrow(colData(rna_exp)))
 isexpr = rowSums(rna_exp@assays@data$cpm>1) >= num_samples
 
 # Defining the DESeq2 object
-dds = DESeqDataSetFromMatrix(countData=round(as.matrix(counts[isexpr,])), colData=colData(rna_exp), design=model_formula)
+dds = DESeqDataSetFromMatrix(countData=round(as.matrix(counts[isexpr,])), colData=colData(rna_exp), rowData=rowData(rna_exp)[isexpr,], design=model_formula)
 
 # DispEst plot for the whole dataset
 dds = estimateSizeFactors(dds)
