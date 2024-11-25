@@ -117,7 +117,7 @@ workflow RNASEQ {
     }
 
     counts_split
-        .map { file -> [["id":file.baseName], file] }
+        .map { file -> [["id":file.baseName.minus(".subset")], file] }
         .set { ch_counts }
 
     // DEA AND FUNCTIONAL

@@ -1,5 +1,5 @@
 process DESEQ2_COMPARE {
-    tag "$meta.id_$comparison"
+    tag "${meta.id}_$comparison"
     label 'process_single'
 
     container "docker.io/nfdata/bulk_rnaseq:v1.0.1"
