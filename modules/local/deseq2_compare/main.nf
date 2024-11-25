@@ -2,15 +2,15 @@ process DESEQ2_COMPARE {
     tag "$meta.id_$comparison"
     label 'process_single'
 
-    container "docker.io/nfdata/bulk_rnaseq:v1.0.0"
+    container "docker.io/nfdata/bulk_rnaseq:v1.0.1"
 
     input:
     tuple val(meta), path(model)
     val comparison
 
     output:
-    tuple val(meta), path("*.txt"), emit: dge
-    path "versions.yml"           , emit: versions
+    tuple val(meta), path("deseq2_toptable.*.txt"), emit: dge
+    path "versions.yml"                           , emit: versions
 
     when:
     task.ext.when == null || task.ext.when

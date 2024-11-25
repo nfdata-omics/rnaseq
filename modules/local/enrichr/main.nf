@@ -2,7 +2,7 @@ process ENRICHR {
     tag "$meta.id_$meta.cf"
     label 'process_single'
 
-    container "docker.io/nfdata/bulk_rnaseq:v1.0.0"
+    container "docker.io/nfdata/bulk_rnaseq:v1.0.1"
 
     input:
     tuple val(meta), path(degs_table)

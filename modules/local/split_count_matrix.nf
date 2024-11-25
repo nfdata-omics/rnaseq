@@ -10,7 +10,7 @@ process SPLIT_COUNT_MATRIX {
     input:
     path count_file
     val gene_column_nr
-    val split_file
+    path split_file
 
     output:
     path "*.subset.tsv", emit: matrices
@@ -56,9 +56,9 @@ for c in sample_lists.columns:
 
 # write version info to yaml file
 with open("versions.yml", "w") as f:
-    f.write('"${task.process}":')
-    f.write(f"   python: {".".join([str(x) for x in sys.version_info[0:3]])}")
-    f.write(f"   pandas: {pd.__version__}")
+    f.write('"${task.process}":\\n')
+    f.write(f"   python: {".".join([str(x) for x in sys.version_info[0:3]])}\\n")
+    f.write(f"   pandas: {pd.__version__}\\n")
 
     """
 

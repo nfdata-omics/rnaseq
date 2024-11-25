@@ -108,7 +108,7 @@ workflow RNASEQ {
         SPLIT_COUNT_MATRIX(
             counts_filt,
             params.gene_column_nr,
-            params.split_file
+            file(params.split_file)
         )
         counts_split = SPLIT_COUNT_MATRIX.out.matrices.flatten()
         ch_versions = ch_versions.mix(SPLIT_COUNT_MATRIX.out.versions)
