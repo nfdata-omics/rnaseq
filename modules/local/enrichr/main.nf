@@ -10,9 +10,9 @@ process ENRICHR {
     val lfc_threshold
 
     output:
-    tuple val(meta), path("*_all.xlsx") , emit: enrich_all
-    tuple val(meta), path("*_up.xlsx")  , emit: enrich_up
-    tuple val(meta), path("*_down.xlsx"), emit: enrich_down
+    tuple val(meta), path("*_all.xlsx") , optional: true, emit: enrich_all
+    tuple val(meta), path("*_up.xlsx")  , optional: true, emit: enrich_up
+    tuple val(meta), path("*_down.xlsx"), optional: true, emit: enrich_down
     path "versions.yml"                 , emit: versions
 
     when:
