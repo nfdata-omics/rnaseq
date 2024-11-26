@@ -95,7 +95,7 @@ if(length(my_genes_down)>=5){
 enrich_summary = paste("There are ", signif_enrich_up, " pathways significantly enriched with up-regulated genes.
                 There are ", signif_enrich_down, " pathways significantly enriched with down-regulated genes.
                 There are ", signif_enrich_all, " pathways significantly enriched with overall deregulated genes.", sep="")
-writeLines(enrich_summary, con="prova.txt")
+writeLines(enrich_summary, con="enrichr_summary.txt")
 
 
 
