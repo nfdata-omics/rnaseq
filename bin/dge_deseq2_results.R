@@ -88,6 +88,7 @@ dev.off()
 # Saving toptable
 n_info = (which(colnames(rowData(dds))=="baseMean")-1)
 toptable = cbind(my_res[,c("baseMean","log2FoldChange","pvalue","padj")], rowData(dds)[,1:n_info])
+colnames(toptable)[5:ncol(toptable)] = colnames(rowData(dds))[1:n_info]
 toptable = toptable[order(toptable$pvalue, decreasing=F),]
 toptable = cbind(rownames(toptable), toptable)
 colnames(toptable)[1] = "gene_name"
