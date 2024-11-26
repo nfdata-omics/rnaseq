@@ -64,6 +64,7 @@ enrich.databases <- c("GO_Biological_Process_2023",
 toptable = read.delim(dge_toptable, h=T, row.names=1, check.names=F)
 # Defining output name
 outname = gsub("deseq2_toptable", "enrichr", dge_toptable)
+summary_name = gsub("deseq2_toptable", "enrichr_summary", dge_toptable)
 outname = gsub(".txt", "", outname)
 
 # Extracting significant genes using specified FDR and log2FC cutoffs
@@ -95,7 +96,7 @@ if(length(my_genes_down)>=5){
 enrich_summary = paste("There are ", signif_enrich_up, " pathways significantly enriched with up-regulated genes.
                 There are ", signif_enrich_down, " pathways significantly enriched with down-regulated genes.
                 There are ", signif_enrich_all, " pathways significantly enriched with overall deregulated genes.", sep="")
-writeLines(enrich_summary, con="enrichr_summary.txt")
+writeLines(enrich_summary, con=summary_name)
 
 
 
