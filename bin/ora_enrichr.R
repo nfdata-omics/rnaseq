@@ -67,24 +67,35 @@ outname = gsub("deseq2_toptable", "enrichr", dge_toptable)
 outname = gsub(".txt", "", outname)
 
 # Extracting significant genes using specified FDR and log2FC cutoffs
+toptable = toptable[!is.na(toptable$padj),]
 my_genes = rownames(toptable)[toptable$padj<fdr & abs(toptable$log2FoldChange)>logfc]
 my_genes_up = rownames(toptable)[toptable$padj<fdr & toptable$log2FoldChange>logfc]
 my_genes_down = rownames(toptable)[toptable$padj<fdr & toptable$log2FoldChange<(-logfc)]
 
 # Performing enrichment and saving results
+signif_enrich_all = 0;
+signif_enrich_up = 0;
+signif_enrich_down = 0;
 if(length(my_genes)>=5){
   my_enrichr = enrichR::enrichr(genes=my_genes, databases=enrich.databases)
   openxlsx::write.xlsx(x=my_enrichr, file=paste(outname,"_all.xlsx",sep=""))
+  signif_enrich_all = sum(unlist(lapply(my_enrichr, function(x) return(sum(x$Adjusted.P.value<0.05)))))
 }
 if(length(my_genes_up)>=5){
   my_enrichr_up = enrichR::enrichr(genes=my_genes_up, databases=enrich.databases)
   openxlsx::write.xlsx(x=my_enrichr_up, file=paste(outname,"_up.xlsx",sep=""))
+  signif_enrich_up = sum(unlist(lapply(my_enrichr_up, function(x) return(sum(x$Adjusted.P.value<0.05)))))
 }
 if(length(my_genes_down)>=5){
   my_enrichr_down = enrichR::enrichr(genes=my_genes_down, databases=enrich.databases)
   openxlsx::write.xlsx(x=my_enrichr_down, file=paste(outname,"_down.xlsx",sep=""))
+  signif_enrich_down = sum(unlist(lapply(my_enrichr_down, function(x) return(sum(x$Adjusted.P.value<0.05)))))
 }
 
+enrich_summary = paste("There are ", signif_enrich_up, " pathways significantly enriched with up-regulated genes.
+                There are ", signif_enrich_down, " pathways significantly enriched with down-regulated genes.
+                There are ", signif_enrich_all, " pathways significantly enriched with overall deregulated genes.", sep="")
+writeLines(enrich_summary, con="prova.txt")
 
 
 
