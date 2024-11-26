@@ -111,7 +111,7 @@ workflow PIPELINE_INITIALISATION {
     // TODO: Validation of the metadata table
     //
 
-    ch_metadata = metadata ? Channel.fromPath( metadata, checkIfExists: true ) : null
+    ch_metadata = metadata ? Channel.value(file(metadata, checkIfExists: true)) : null
 
 
     emit:

@@ -104,12 +104,11 @@ workflow RNASEQ {
 
     // COUNT SUBSETS
 
-    if ( params.split_variable ) {
+    if ( params.split_file ) {
         SPLIT_COUNT_MATRIX(
             counts_filt,
             params.gene_column_nr,
-            metadata,
-            params.split_variable
+            file(params.split_file)
         )
         counts_split = SPLIT_COUNT_MATRIX.out.matrices.flatten()
         ch_versions = ch_versions.mix(SPLIT_COUNT_MATRIX.out.versions)
@@ -118,7 +117,7 @@ workflow RNASEQ {
     }
 
     counts_split
-        .map { file -> [["id":file.baseName], file] }
+        .map { file -> [["id":file.baseName.minus(".subset")], file] }
         .set { ch_counts }
 
     // DEA AND FUNCTIONAL
