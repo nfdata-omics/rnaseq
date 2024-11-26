@@ -77,7 +77,7 @@ if(n_num>1 | n_denom>1){
   
 }
 
-capture.output(summary(my_res, alpha=fdr), file=paste("dge_summary.",variable,"_",numNames,"_vs_",denomNames,suffix,".txt", sep=""))
+capture.output(summary(my_res, alpha=fdr), file=paste("deseq2_summary.",variable,"_",numNames,"_vs_",denomNames,suffix,".txt", sep=""))
 
 
 pdf(paste("MAplot.",variable,"_",numNames,"_vs_",denomNames,".pdf", sep=""))
