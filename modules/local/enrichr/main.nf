@@ -13,6 +13,7 @@ process ENRICHR {
     tuple val(meta), path("*_all.xlsx") , optional: true, emit: enrich_all
     tuple val(meta), path("*_up.xlsx")  , optional: true, emit: enrich_up
     tuple val(meta), path("*_down.xlsx"), optional: true, emit: enrich_down
+    path("enrichr_summary.*.txt")       , emit: summary
     path "versions.yml"                 , emit: versions
 
     when:
