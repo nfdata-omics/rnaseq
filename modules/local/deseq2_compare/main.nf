@@ -10,6 +10,7 @@ process DESEQ2_COMPARE {
 
     output:
     tuple val(meta), path("deseq2_toptable.*.txt"), emit: dge
+    path "deseq2_summary.*.txt"                   , emit: summary
     path "versions.yml"                           , emit: versions
 
     when:
@@ -31,7 +32,8 @@ process DESEQ2_COMPARE {
 
     stub:
     """
-    touch dge.txt
+    touch deseq2_toptable.${meta.id}_${comparison}.txt
+    touch deseq2_summary.${meta.id}_${comparison}.txt
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
