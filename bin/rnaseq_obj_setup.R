@@ -78,12 +78,13 @@ meta = meta[match(colnames(counts)[(col_num):ncol(counts)], rownames(meta)),]
 if(col_num==1){
   
   rna_exp = SummarizedExperiment(assays=list(counts=as.matrix(counts)), rowData=as.data.frame(rownames(counts)), colData=meta)
-  colnames(rowData(rna_exp)) = "geneID"
+  colnames(rowData(rna_exp)) = "gene_name"
   metadata(rna_exp)$gene_length = FALSE
   
 } else {
   
   rna_exp = SummarizedExperiment(assays=list(counts=as.matrix(counts[,(col_num):ncol(counts)])), rowData=as.data.frame(counts[,1:(col_num-1)]), colData=meta)
+  colnames(rowData(rna_exp)) = colnames(counts)[1:(col_num-1)]
   # Is gene length information available?
   if("Length"%in%colnames(counts)[1:(col_num-1)]){
     metadata(rna_exp)$gene_length = TRUE

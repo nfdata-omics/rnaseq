@@ -46,8 +46,10 @@ y_all = DGEList(counts=rna_exp@assays@data$counts, genes=rowData(rna_exp))
 
 # Cpm
 cpm = cpm(y_all, log=FALSE)
-cpm = cbind(rownames(cpm), cpm)
+cpm = cbind(rownames(cpm), rowData(rna_exp), cpm)
 colnames(cpm)[1] = "gene_name"
+# Excluding the case in which rowData(rna_exp) ARE exactly the rownames
+if(sum(cpm[,1]==cpm[,2]) == nrow(cpm)) {cpm = cpm[,-2]}
 write.table(cpm, "cpm.txt", quote=F, row.names=F, col.names=T, sep="\t")
 rna_exp@assays@data$cpm = cpm(y_all, log=FALSE)
 
@@ -56,7 +58,7 @@ if(rna_exp@metadata$gene_length){
 	# Log-norm-rpkm (TMM normalization)
 	y_all = calcNormFactors(y_all, method="TMM")
 	log_norm_rpkm = rpkm(y_all, log=T, gene.length=y_all$genes$Length)
-	log_norm_rpkm = cbind(rownames(log_norm_rpkm), log_norm_rpkm)
+	log_norm_rpkm = cbind(rownames(log_norm_rpkm), rowData(rna_exp), log_norm_rpkm)
 	colnames(log_norm_rpkm)[1] = "gene_name"
 	write.table(log_norm_rpkm, "log.norm.rpkm.txt", quote=F, row.names=F, col.names=T, sep="\t")
 	rna_exp@assays@data$log_norm_rpkm = rpkm(y_all, log=T, gene.length=y_all$genes$Length)
