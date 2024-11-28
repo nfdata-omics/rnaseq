@@ -43,6 +43,8 @@ workflow NFDATAOMICS_RNASEQ {
 
     take:
     samplesheet // channel: samplesheet read in from --input
+    counts      // channel: count matrix file read as --counts
+    metadata    // channel: sample metadata table read as --metadata
 
     main:
 
@@ -50,7 +52,9 @@ workflow NFDATAOMICS_RNASEQ {
     // WORKFLOW: Run pipeline
     //
     RNASEQ (
-        samplesheet
+        samplesheet,
+        counts,
+        metadata
     )
     emit:
     multiqc_report = RNASEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
@@ -73,15 +77,20 @@ workflow {
         params.monochrome_logs,
         args,
         params.outdir,
-        params.input
+        params.input,
+        params.counts,
+        params.metadata
     )
 
     //
     // WORKFLOW: Run main workflow
     //
     NFDATAOMICS_RNASEQ (
-        PIPELINE_INITIALISATION.out.samplesheet
+        PIPELINE_INITIALISATION.out.samplesheet,
+        PIPELINE_INITIALISATION.out.counts,
+        PIPELINE_INITIALISATION.out.metadata
     )
+
     //
     // SUBWORKFLOW: Run completion tasks
     //

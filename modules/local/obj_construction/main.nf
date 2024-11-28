@@ -1,18 +1,18 @@
-process R_COUNT_NORM {
+process OBJ_CONSTRUCTION {
     tag "$meta.id"
     label 'process_single'
 
     container "docker.io/nfdata/bulk_rnaseq:v1.0.1"
 
     input:
-    tuple val(meta), path(annotated_counts)
+    tuple val(meta), path(count_file)
+    val gene_column_nr
+    val gene_id_index
+    path metadata_table
 
     output:
-    tuple val(meta), path("*.norm.rds")     , emit: rds
-    path "lib_size_factors.txt"             , emit: size_factors
-    path "cpm.txt"                          , emit: cpm
-    path 'log.norm.rpkm.txt', optional: true, emit: rpkm
-    path "versions.yml"                     , emit: versions
+    tuple val(meta), path("*.rds"), emit: rds
+    path "versions.yml"           , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -23,23 +23,21 @@ process R_COUNT_NORM {
     }
     args = task.ext.args ?: ''
     """
-    count_norm.R $args $annotated_counts
+    rnaseq_obj_setup.R $args -i $gene_id_index -c $gene_column_nr $count_file $metadata_table
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
     END_VERSIONS
-    count_norm.R --version >> versions.yml
+    rnaseq_obj_setup.R --version >> versions.yml
     """
 
     stub:
     """
-    touch cpm.txt
-    touch lib_size_factors.cpm.txt
-    touch rnaseq_matrix.norm.rds
+    touch rna_SummExp.rds
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
     END_VERSIONS
-    count_norm.R --version >> versions.yml
+    rnaseq_obj_setup.R --version >> versions.yml
     """
 }

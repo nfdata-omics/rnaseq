@@ -1,18 +1,17 @@
-process R_COUNT_NORM {
+process DESEQ2_FIT {
     tag "$meta.id"
     label 'process_single'
 
     container "docker.io/nfdata/bulk_rnaseq:v1.0.1"
 
     input:
-    tuple val(meta), path(annotated_counts)
+    tuple val(meta), path(counts)
+    val model_formula
+    val frac_samples
 
     output:
-    tuple val(meta), path("*.norm.rds")     , emit: rds
-    path "lib_size_factors.txt"             , emit: size_factors
-    path "cpm.txt"                          , emit: cpm
-    path 'log.norm.rpkm.txt', optional: true, emit: rpkm
-    path "versions.yml"                     , emit: versions
+    tuple val(meta), path("deseq2_obj.rds"), emit: rds
+    path "versions.yml"                    , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -23,23 +22,22 @@ process R_COUNT_NORM {
     }
     args = task.ext.args ?: ''
     """
-    count_norm.R $args $annotated_counts
+    dge_deseq2_fit.R $args -e $frac_samples $counts \"$model_formula\"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
     END_VERSIONS
-    count_norm.R --version >> versions.yml
+    dge_deseq2_fit.R --version >> versions.yml
     """
 
     stub:
     """
-    touch cpm.txt
-    touch lib_size_factors.cpm.txt
-    touch rnaseq_matrix.norm.rds
+    touch deseq2_obj.rds
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
+        R: \$(R --version)
     END_VERSIONS
-    count_norm.R --version >> versions.yml
+    dge_deseq2_fit.R --version >> versions.yml
     """
 }

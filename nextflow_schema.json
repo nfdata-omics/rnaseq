@@ -23,10 +23,13 @@
                     "help_text": "You will need to create a design file with information about the samples in your experiment before running the pipeline. Use this parameter to specify its location. It has to be a comma-separated file with 3 columns, and a header row.",
                     "fa_icon": "fas fa-file-csv"
                 },
-                "counts": {
+                "metadata": {
                     "type": "string",
-                    "description": "Path to file with computed gene counts",
-                    "format": "file-path"
+                    "description": "Path to comma-separated file with the sample metadata",
+                    "pattern": "^\\S+\\.csv$",
+                    "format": "file-path",
+                    "mimetype": "text/csv",
+                    "fa_icon": "fas fa-file-csv"
                 },
                 "outdir": {
                     "type": "string",
@@ -45,8 +48,39 @@
                     "type": "string",
                     "description": "MultiQC report title. Printed as page header, used for filename if not otherwise specified.",
                     "fa_icon": "fas fa-file-signature"
+                },
+                "exclude_list": {
+                    "type": "string",
+                    "fa_icon": "fas fa-exclamation-triangle"
                 }
             }
+        },
+        "count_matrix_options": {
+            "title": "Count matrix options",
+            "type": "object",
+            "description": "Parameters to specify input count matrix, skipping alignment and quantification",
+            "default": "",
+            "properties": {
+                "counts": {
+                    "type": "string",
+                    "description": "Path to file with pre-computed gene counts",
+                    "format": "file-path",
+                    "fa_icon": "fas fa-file-excel"
+                },
+                "gene_id_index": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Column to use as gene index of the count matrix",
+                    "fa_icon": "fas fa-play-circle"
+                },
+                "gene_column_nr": {
+                    "type": "integer",
+                    "default": 1,
+                    "description": "Number of columns of the count matrix containing gene annotations",
+                    "fa_icon": "fas fa-arrows-alt-h"
+                }
+            },
+            "fa_icon": "fas fa-file-invoice"
         },
         "reference_genome_options": {
             "title": "Reference genome options",
@@ -94,6 +128,48 @@
                     "default": "s3://ngi-igenomes/igenomes/"
                 }
             }
+        },
+        "dimensionality_reduction_and_dea": {
+            "title": "Dimensionality reduction and DEA",
+            "type": "object",
+            "description": "Parameters to tune the analysis of the counts",
+            "default": "",
+            "properties": {
+                "frac_expressed": {
+                    "type": "number",
+                    "default": 0.5,
+                    "description": "Filter genes that are expressed in fewer samples than the specified fraction.",
+                    "fa_icon": "fas fa-vials"
+                },
+                "model_formula": {
+                    "type": "string",
+                    "fa_icon": "fas fa-wave-square",
+                    "description": "Formula to specify the model of the DEA."
+                },
+                "comparisons": {
+                    "type": "string",
+                    "fa_icon": "fas fa-greater-than",
+                    "description": "List of the conditions pairs to test in the DEA."
+                },
+                "split_file": {
+                    "type": "string",
+                    "fa_icon": "fas fa-object-ungroup",
+                    "description": "Repeat the DEA on subsets of the full matrix defined by the file with this path."
+                },
+                "fdr_threshold": {
+                    "type": "number",
+                    "default": 0.05,
+                    "fa_icon": "fas fa-level-down-alt",
+                    "description": "FDR threshold for the Enrichment analysis."
+                },
+                "lfc_threshold": {
+                    "type": "number",
+                    "default": 0,
+                    "fa_icon": "fas fa-wave-square",
+                    "description": "LFC threshold for the Enrichment analysis."
+                }
+            },
+            "fa_icon": "fas fa-chart-bar"
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -240,7 +316,13 @@
             "$ref": "#/$defs/input_output_options"
         },
         {
+            "$ref": "#/$defs/count_matrix_options"
+        },
+        {
             "$ref": "#/$defs/reference_genome_options"
+        },
+        {
+            "$ref": "#/$defs/dimensionality_reduction_and_dea"
         },
         {
             "$ref": "#/$defs/institutional_config_options"
