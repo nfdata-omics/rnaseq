@@ -17,20 +17,32 @@ def parse_args():
 
     return parser.parse_args()
 
-def scatter_plot_with_metadata(input_table, xy_columns, xy_axis_labels):
+def scatter_plot_with_metadata(input_table, label_percent, xy_columns, xy_axis_labels):
 
     # read data with metadata
     df = pd.read_csv(input_table, index_col=0, sep="\t")
 
     # convert variables to categorical vars
     for mv in df.columns[2:]:
-        df[mv] = df[mv].astype("category")
+        if not mv.startswith("PC"):
+            if df[mv].dtype == 'object':
+                df[mv] = df[mv].astype("category")
 
     # select metadata variables to include in the color list
     metavars = []
     for mv in df.columns[2:]:
-        if len(df[mv].unique()) < 20:
+        if len(df[mv].unique()) < 20 and not mv.startswith("PC"):
             metavars.append(mv)
+
+    # adding variance percentages to axis labels
+    if label_percent:
+        input_var = str(input_table).replace("scores", "explained_variance")
+        df_var = pd.read_csv(input_var, index_col=0, sep="\t")
+        my_x_label = xy_axis_labels[0] + " (" + str(df_var["var"][xy_columns[0]]) + "%)"
+        my_y_label = xy_axis_labels[1] + " (" + str(df_var["var"][xy_columns[1]]) + "%)"
+    else:
+        my_x_label = xy_axis_labels[0]
+        my_y_label = xy_axis_labels[1]
 
     # create plot and return it
     return nfdatautils.plt.scatter(
@@ -39,8 +51,8 @@ def scatter_plot_with_metadata(input_table, xy_columns, xy_axis_labels):
         ycolumn = xy_columns[1],
         samplenames = "samples",
         metavars = metavars,
-        xaxis_label = xy_axis_labels[0],
-        yaxis_lable = xy_axis_labels[1]
+        xaxis_label = my_x_label,
+        yaxis_lable = my_y_label
     )
 
 def main():
@@ -55,14 +67,14 @@ def main():
     plot_path = args.output_folder / "downstream" / "dim_reduction" / "MDS_plot.html"
 
     # create plot and write it to html output file
-    scatter_plot_with_metadata(data_path, xy_columns=("x", "y"), xy_axis_labels=("x_MDS", "y_MDS")).write_html(plot_path)
+    scatter_plot_with_metadata(data_path, False, xy_columns=("x", "y"), xy_axis_labels=("x_MDS", "y_MDS")).write_html(plot_path)
 
     # define path of input and plot files
     data_path = args.output_folder / "downstream" / "dim_reduction" / "PCA_scores.txt"
     plot_path = args.output_folder / "downstream" / "dim_reduction" / "PCA_plot.html"
 
     # create plot and write it to html output file
-    scatter_plot_with_metadata(data_path, xy_columns=("PC1", "PC2"), xy_axis_labels=("PC1", "PC2")).write_html(plot_path)
+    scatter_plot_with_metadata(data_path, True, xy_columns=("PC1", "PC2"), xy_axis_labels=("PC1", "PC2")).write_html(plot_path)
 
 
 if __name__ == "__main__":
