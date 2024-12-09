@@ -78,16 +78,31 @@ signif_enrich_all = 0;
 signif_enrich_up = 0;
 signif_enrich_down = 0;
 if(length(my_genes)>=5){
+  if(length(my_genes)>10000){
+    my_genes = my_genes[1:10000]
+    warning("The list of differentially expressed genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes. 
+            Consider to apply more stringent cutoffs on FDR and/or log2FC")
+  }
   my_enrichr = enrichR::enrichr(genes=my_genes, databases=enrich.databases)
   openxlsx::write.xlsx(x=my_enrichr, file=paste(outname,"_all.xlsx",sep=""))
   signif_enrich_all = sum(unlist(lapply(my_enrichr, function(x) return(sum(x$Adjusted.P.value<0.05)))))
 }
 if(length(my_genes_up)>=5){
+  if(length(my_genes_up)>10000){
+    my_genes_up = my_genes_up[1:10000]
+    warning("The list of up-regulated genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes. 
+            Consider to apply more stringent cutoffs on FDR and/or log2FC")
+  }
   my_enrichr_up = enrichR::enrichr(genes=my_genes_up, databases=enrich.databases)
   openxlsx::write.xlsx(x=my_enrichr_up, file=paste(outname,"_up.xlsx",sep=""))
   signif_enrich_up = sum(unlist(lapply(my_enrichr_up, function(x) return(sum(x$Adjusted.P.value<0.05)))))
 }
 if(length(my_genes_down)>=5){
+  if(length(my_genes_down)>10000){
+    my_genes_down = my_genes_down[1:10000]
+    warning("The list of up-regulated genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes. 
+            Consider to apply more stringent cutoffs on FDR and/or log2FC")
+  }
   my_enrichr_down = enrichR::enrichr(genes=my_genes_down, databases=enrich.databases)
   openxlsx::write.xlsx(x=my_enrichr_down, file=paste(outname,"_down.xlsx",sep=""))
   signif_enrich_down = sum(unlist(lapply(my_enrichr_down, function(x) return(sum(x$Adjusted.P.value<0.05)))))
