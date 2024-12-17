@@ -137,7 +137,7 @@
             "properties": {
                 "frac_expressed": {
                     "type": "number",
-                    "default": 0.5,
+                    "default": 0.1,
                     "description": "Filter genes that are expressed in fewer samples than the specified fraction.",
                     "fa_icon": "fas fa-vials"
                 },
