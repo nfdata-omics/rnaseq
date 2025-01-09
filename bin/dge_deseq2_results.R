@@ -87,8 +87,10 @@ dev.off()
 
 # Saving toptable
 n_info = (which(colnames(rowData(dds))=="baseMean")-1)
-toptable = cbind(my_res[,c("baseMean","log2FoldChange","pvalue","padj")], rowData(dds)[,1:n_info])
-colnames(toptable)[5:ncol(toptable)] = colnames(rowData(dds))[1:n_info]
+toptable = cbind(my_res[,c("baseMean","log2FoldChange","pvalue","padj")], rep("not_sign", nrow(my_res)),rowData(dds)[,1:n_info])
+colnames(toptable)[5:ncol(toptable)] = c("Significance", colnames(rowData(dds))[1:n_info])
+toptable$Significance[!is.na(toptable$padj) & toptable$padj < fdr & toptable$log2FoldChange > 0] = "up"
+toptable$Significance[!is.na(toptable$padj) & toptable$padj < fdr & toptable$log2FoldChange <= 0] = "down"
 toptable = toptable[order(toptable$pvalue, decreasing=F),]
 # Excluding the case in which rowData(rna_exp) ARE exactly the rownames
 if(sum(toptable[,5]==rownames(toptable)) == nrow(toptable)) {toptable = toptable[,-5]}
