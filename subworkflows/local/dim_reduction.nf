@@ -2,7 +2,7 @@
 include { OBJ_CONSTRUCTION }      from '../../modules/local/obj_construction/main'
 include { R_COUNT_NORM }          from '../../modules/local/r_count_norm/main'
 include { CONTROL_GENE_HEATMAP }  from '../../modules/local/control_gene_heatmap/main'
-include { SAMPLES_CORRELATION }   from '../../modules/local/samples_correlation/main
+include { SAMPLES_CORRELATION }   from '../../modules/local/samples_correlation/main'
 include { PCA_AND_MDS }           from '../../modules/local/pca_and_mds/main'
 
 workflow DIM_REDUCTION {
