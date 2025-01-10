@@ -1,7 +1,6 @@
 
 include { OBJ_CONSTRUCTION }      from '../../modules/local/obj_construction/main'
 include { R_COUNT_NORM }          from '../../modules/local/r_count_norm/main'
-include { CONTROL_GENE_HEATMAP }  from '../../modules/local/control_gene_heatmap/main'
 include { DESEQ2_FIT }            from '../../modules/local/deseq2_fit/main'
 include { DESEQ2_COMPARE }        from '../../modules/local/deseq2_compare/main'
 include { ENRICHR }               from '../../modules/local/enrichr/main'
