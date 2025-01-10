@@ -2,6 +2,7 @@
 include { OBJ_CONSTRUCTION }      from '../../modules/local/obj_construction/main'
 include { R_COUNT_NORM }          from '../../modules/local/r_count_norm/main'
 include { CONTROL_GENE_HEATMAP }  from '../../modules/local/control_gene_heatmap/main'
+include { SAMPLES_CORRELATION }   from '../../modules/local/samples_correlation/main
 include { PCA_AND_MDS }           from '../../modules/local/pca_and_mds/main'
 
 workflow DIM_REDUCTION {
@@ -47,6 +48,15 @@ workflow DIM_REDUCTION {
         ""
     )
     ch_versions = ch_versions.mix(CONTROL_GENE_HEATMAP.out.versions)
+
+    //
+    // CALCULATE SAMPLES CORRELATION
+    //
+    SAMPLES_CORRELATION(
+    	R_COUNT_NORM.out.rds,
+        ""
+    )
+    ch_versions = ch_versions.mix(SAMPLES_CORRELATION.out.versions)
 
     //
     // COMPUTE PCA AND MDS COORDINATES
