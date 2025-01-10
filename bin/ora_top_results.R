@@ -4,7 +4,7 @@ suppressMessages(library("optparse"))
 suppressMessages(library("openxlsx"))
 suppressMessages(library("stringr"))
 
-### Script to extract the most significantly enriched pathways from all the enrichR results.
+### Script to extract the most significantly enriched pathways from the complete xlsx table of enrichR results.
 option_list <- list(
   make_option(c("-F", "--FDR"), action="store", type="double", default=0.05, help="The FDR cutoff to define significant pathways. [default \"%default\"]"),
   make_option(c("-n", "--num"), action="store", type="integer", default=25, help="The number of top most significantly enriched pathways to extract. [default \"%default\"]"),
@@ -13,8 +13,8 @@ option_list <- list(
 
 parser<-OptionParser(usage = "%prog [options] enrichr_full_output",
                      option_list = option_list, prog = "ora_top_results",
-                     description = "Extract the top N most significantly enriched pathways from all the collections previously tested with enrichR. 
-                     'enrichr_full_output' is the path of the .xlsx file containing all the enrichR results from which significant pthways are extracted.")
+                     description = "Extract the top N most significantly enriched pathways from all collections previously tested with enrichR. If fewer than N pathways are extracted, it indicates that fewer pathways satisfy the FDR cutoff.
+                     'enrichr_full_output' is the path of the .xlsx file containing all enrichR results from which significant pathways will be extracted.")
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
 opt <- arguments$options
@@ -62,7 +62,7 @@ fx <- function(x) eval(parse(text=enrichR.table[x,]$Overlap))
   
   if(length(p)>0) { # Discarding the not-significant results (to avoid errors)
     pathways.dataframe = data.frame(Pathway=p, gene.ratio=sapply(p, fx), p.value=enrichR.table[p,]$P.value, p.value.adj=enrichR.table[p,]$Adjusted.P.value, 
-                                    combined.score=enrichR.table[p,]$Combined.Score, collection=enrichR.table[p,]$Collection)
+                                    minus.log.padj=-log10(enrichR.table[p,]$Adjusted.P.value), combined.score=enrichR.table[p,]$Combined.Score, collection=enrichR.table[p,]$Collection)
     # Sorting and saving the dataframe with top results
     pathways.dataframe = pathways.dataframe[order(pathways.dataframe$p.value.adj),]
     pathways.dataframe = pathways.dataframe[1:min(num,nrow(pathways.dataframe)),]
