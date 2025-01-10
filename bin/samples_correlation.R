@@ -86,15 +86,14 @@ write.table(my_cor_table, "samples_correlation_table.txt", quote=F, row.names=F,
 
 
 # Heatmap
+if(nrow(meta)<=20){disp = T} else {disp = F}
 pdf("samples_correlation_heatmap.pdf", height=10, width=12)
-if(nrow(meta)<=20){
-  pheatmap(my_cor, scale="none", display_numbers=T, treeheight_row=0, annotation_col=col_annot)
+if(annot[1]!=""){
+  pheatmap(my_cor, scale="none", display_numbers=disp, treeheight_row=0, annotation_col=col_annot)
 } else {
-  pheatmap(my_cor, scale="none", display_numbers=F, treeheight_row=0, annotation_col=col_annot)
+  pheatmap(my_cor, scale="none", display_numbers=disp, treeheight_row=0)
 }
 dev.off()
-
-
 
 
 
