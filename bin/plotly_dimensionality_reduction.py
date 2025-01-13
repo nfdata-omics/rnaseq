@@ -1,4 +1,4 @@
-
+#!/usr/bin/env python3
 from pathlib import Path
 import argparse
 import pandas as pd
@@ -44,8 +44,8 @@ def scatter_plot_with_metadata(input_table, label_percent, xy_columns, xy_axis_l
         my_x_label = xy_axis_labels[0]
         my_y_label = xy_axis_labels[1]
 
-    # create plot and return it
-    return nfdatautils.plt.scatter(
+    # create plot
+    my_plt = nfdatautils.plt.scatter(
         df.reset_index(),
         xcolumn = xy_columns[0],
         ycolumn = xy_columns[1],
@@ -54,6 +54,10 @@ def scatter_plot_with_metadata(input_table, label_percent, xy_columns, xy_axis_l
         xaxis_label = my_x_label,
         yaxis_lable = my_y_label
     )
+
+    # update dots size and return the plot
+    my_plt.update_traces(marker=dict(size=10))
+    return my_plt
 
 def main():
     args = parse_args()
