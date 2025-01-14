@@ -35,9 +35,10 @@ process ENRICHR {
 
     stub:
     """
-    touch enrichr_${meta.id}_${meta.cf}_all.xlsx
-    touch enrichr_${meta.id}_${meta.cf}_up.xlsx
-    touch enrichr_${meta.id}_${meta.cf}_down.xlsx
+    touch enrichr.${meta.id}_${meta.cf}_all.xlsx
+    touch enrichr.${meta.id}_${meta.cf}_up.xlsx
+    touch enrichr.${meta.id}_${meta.cf}_down.xlsx
+    touch enrichr_summary.${meta.id}_${meta.cf}.txt
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
