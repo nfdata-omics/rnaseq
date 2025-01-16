@@ -160,13 +160,25 @@
                     "type": "number",
                     "default": 0.05,
                     "fa_icon": "fas fa-level-down-alt",
-                    "description": "FDR threshold for the Enrichment analysis."
+                    "description": "FDR threshold to define significant genes for the Enrichment analysis."
                 },
                 "lfc_threshold": {
                     "type": "number",
                     "default": 0,
                     "fa_icon": "fas fa-wave-square",
-                    "description": "LFC threshold for the Enrichment analysis."
+                    "description": "LFC threshold to define significant genes for the Enrichment analysis."
+                },
+                "fdr_pathways": {
+                    "type": "number",
+                    "default": 0.05,
+                    "fa_icon": "fas fa-level-down-alt",
+                    "description": "FDR threshold to define significant pathways."
+                },
+		"n_pathways": {
+                    "type": "integer",
+                    "default": 25,
+                    "fa_icon": "fas fa-level-down-alt",
+                    "description": "Number of the top significant pathways to extract."
                 }
             },
             "fa_icon": "fas fa-chart-bar"

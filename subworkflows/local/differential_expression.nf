@@ -4,6 +4,7 @@ include { R_COUNT_NORM }          from '../../modules/local/r_count_norm/main'
 include { DESEQ2_FIT }            from '../../modules/local/deseq2_fit/main'
 include { DESEQ2_COMPARE }        from '../../modules/local/deseq2_compare/main'
 include { ENRICHR }               from '../../modules/local/enrichr/main'
+include { ENRICHR_TOPN }          from '../../modules/local/enrichr_topn/main'
 
 workflow DIFFERENTIAL_EXPRESSION {
     take:
@@ -16,6 +17,8 @@ workflow DIFFERENTIAL_EXPRESSION {
     frac_expressed
     fdr_threshold
     lfc_threshold
+    fdr_pathways
+    n_pathways
 
     main:
 
@@ -77,7 +80,25 @@ workflow DIFFERENTIAL_EXPRESSION {
                 fdr_threshold,
                 lfc_threshold
             )
+	    ch_enrichr = Channel
+    		.empty()
+    		.mix(
+        	    ENRICHR.out.enrich_all.filter { it != null },
+        	    ENRICHR.out.enrich_up.filter { it != null },
+        	    ENRICHR.out.enrich_down.filter { it != null }
+    		)
+	    ch_enrichr.view()
             ch_versions = ch_versions.mix(ENRICHR.out.versions)
+
+            //
+            // ENRICHR TOP RESULTS EXTRACTION
+            //
+            ENRICHR_TOPN(
+		ch_enrichr,
+		fdr_pathways,
+		n_pathways
+            )
+            ch_versions = ch_versions.mix(ENRICHR_TOPN.out.versions)
 
         }
     }

@@ -132,6 +132,8 @@ workflow RNASEQ {
         params.frac_expressed,
         params.fdr_threshold,
         params.lfc_threshold,
+	params.fdr_pathways,
+	params.n_pathways
     )
     ch_versions = ch_versions.mix(DIFFERENTIAL_EXPRESSION.out.versions)
 
