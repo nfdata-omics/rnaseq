@@ -93,7 +93,7 @@ toptable$Significance[!is.na(toptable$padj) & toptable$padj < fdr & toptable$log
 toptable$Significance[!is.na(toptable$padj) & toptable$padj < fdr & toptable$log2FoldChange <= 0] = "down"
 toptable = toptable[order(toptable$pvalue, decreasing=F),]
 # Excluding the case in which rowData(rna_exp) ARE exactly the rownames
-if(sum(toptable[,5]==rownames(toptable)) == nrow(toptable)) {toptable = toptable[,-5]}
+if(sum(toptable[,6]==rownames(toptable)) == nrow(toptable)) {toptable = toptable[,-6]}
 toptable = cbind(rownames(toptable), toptable)
 colnames(toptable)[1] = "gene_name"
 write.table(toptable, paste("deseq2_toptable.",variable,"_",numNames,"_vs_",denomNames,suffix,".txt", sep=""), row.names=F, col.names=T, quote=F, sep="\t")
