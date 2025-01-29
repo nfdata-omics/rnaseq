@@ -1,14 +1,14 @@
 process SPLIT_COUNT_MATRIX {
-    tag "$count_file"
+    tag "$meta.id"
     label 'process_single'
 
-    conda (params.enable_conda ? "conda-forge::pandas==2.2.1" : null)
+    conda "conda-forge::pandas==2.2.1"
     container "${ workflow.containerEngine == 'singularity' && !task.ext.singularity_pull_docker_container ?
         'https://depot.galaxyproject.org/singularity/pandas:2.2.1' :
         'quay.io/biocontainers/pandas:2.2.1' }"
 
     input:
-    path count_file
+    tuple val(meta), path(count_file)
     val gene_column_nr
     path split_file
 

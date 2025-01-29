@@ -44,7 +44,7 @@ workflow DIM_REDUCTION {
     //
     CONTROL_GENE_HEATMAP(
         R_COUNT_NORM.out.rds,
-        "${workflow.projectDir}/assets/hsapiens_ctrl_genes.txt",
+        params.control_genes_list,
         ""
     )
     ch_versions = ch_versions.mix(CONTROL_GENE_HEATMAP.out.versions)

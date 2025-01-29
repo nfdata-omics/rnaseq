@@ -85,20 +85,23 @@ workflow PIPELINE_INITIALISATION {
             .map {
                 meta, fastq_1, fastq_2, bam ->
                     if (bam) {
-                        return [ meta.id, meta + [ data_type:"bam" ], fastq_1, fastq_2, bam ]
+                        return [ meta + [ data_type:"bam" ], fastq_1, fastq_2, bam ]
                     } else {
-                        return [ meta.id, meta + [ data_type:"fastq" ], fastq_1, fastq_2, bam ]
+                        return [ meta + [ data_type:"fastq" ], fastq_1, fastq_2, bam ]
+                    }
+            }
+            .map {
+                meta, fastq_1, fastq_2, bam ->
+                    if (!fastq_2) {
+                        return [ meta.id, meta + [ single_end:true ], [ fastq_1 ], bam ]
+                    } else {
+                        return [ meta.id, meta + [ single_end:false ], [ fastq_1, fastq_2 ], bam ]
                     }
             }
             .groupTuple()
-            .map { samplesheet ->
-                validateInputSamplesheet(samplesheet)
-            }
-            .map {
-                meta, fastq1s, fastq2s, bam ->
-                    return [ meta, fastq1s.flatten(), fastq2s.flatten(), bam.flatten() ]
-            }
+            .map { samplesheet -> validateInputSamplesheet(samplesheet) }
             .set { ch_samplesheet }
+
     }
 
     //
@@ -184,7 +187,7 @@ def validateInputParameters() {
 // Validate channels from input samplesheet
 //
 def validateInputSamplesheet(input) {
-    def (metas, fastq1s, fastq2s, bams) = input[1..4]
+    def (metas, fastqs, bams) = input[1..3]
 
     // Check that multiple runs of the same sample are of the same datatype
     def datatype_ok = metas.collect{ it.data_type }.unique().size == 1
@@ -195,7 +198,7 @@ def validateInputSamplesheet(input) {
         error("Please check input samplesheet -> Multiple bams for the same sample : ${metas[0].id}")
     }
 
-    return [ metas[0], fastq1s, fastq2s, bams ]
+    return [ metas[0], fastqs, bams ]
 }
 //
 // Get attribute from genome config file e.g. fasta
