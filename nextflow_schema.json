@@ -51,7 +51,8 @@
                 },
                 "exclude_list": {
                     "type": "string",
-                    "fa_icon": "fas fa-exclamation-triangle"
+                    "fa_icon": "fas fa-exclamation-triangle",
+                    "description": "Path to a file with the list of samples to exclude from the downstream analysis."
                 }
             }
         },
@@ -104,13 +105,37 @@
                     "help_text": "This parameter is *mandatory* if `--genome` is not specified. If you don't have a BWA index available this will be generated for you automatically. Combine with `--save_reference` to save BWA index for future runs.",
                     "fa_icon": "far fa-file-code"
                 },
+                "gtf": {
+                    "type": "string",
+                    "description": "Path to GTF annotation file.",
+                    "fa_icon": "far fa-file-code"
+                },
+                "transcript_fasta": {
+                    "type": "string",
+                    "description": "Path to FASTA transcriptome file.",
+                    "fa_icon": "far fa-file-code"
+                },
                 "ref_flat": {
                     "type": "string",
                     "format": "file-path",
                     "exists": true,
                     "mimetype": "text/plain",
-                    "description": "...",
+                    "description": "Path to the annotation in the refFlat format.",
                     "fa_icon": "far fa-file-code"
+                },
+                "star_index": {
+                    "type": "string",
+                    "format": "path",
+                    "exists": true,
+                    "fa_icon": "fas fa-bezier-curve",
+                    "description": "Path to directory or tar.gz archive for pre-built STAR index."
+                },
+                "salmon_index": {
+                    "type": "string",
+                    "format": "path",
+                    "exists": true,
+                    "fa_icon": "fas fa-bezier-curve",
+                    "description": "Path to directory or tar.gz archive for pre-built Salmon index."
                 },
                 "igenomes_ignore": {
                     "type": "boolean",
@@ -126,6 +151,91 @@
                     "fa_icon": "fas fa-ban",
                     "hidden": true,
                     "default": "s3://ngi-igenomes/igenomes/"
+                }
+            }
+        },
+        "trimming_options": {
+            "title": "Trimming options",
+            "type": "object",
+            "description": "Parameters of the trimming step.",
+            "default": "",
+            "properties": {
+                "skip_trimming": {
+                    "type": "boolean",
+                    "description": "Skip the adapter trimming step.",
+                    "help_text": "Use this if your input FastQ files have already been trimmed outside of the workflow or if you're very confident that there is no adapter contamination in your data.",
+                    "fa_icon": "fas fa-fast-forward"
+                },
+                "trimmer": {
+                    "type": "string",
+                    "default": "fastp",
+                    "description": "Specifies the trimming tool to use - available options are 'trimgalore' and 'fastp'.",
+                    "fa_icon": "fas fa-cut",
+                    "enum": ["trimgalore", "fastp"]
+                },
+                "min_trimmed_reads": {
+                    "type": "integer",
+                    "default": 10000,
+                    "fa_icon": "fas fa-hand-paper",
+                    "description": "Minimum number of trimmed reads below which samples are removed from further processing. Some downstream steps in the pipeline will fail if this threshold is too low."
+                },
+                "extra_trimgalore_args": {
+                    "type": "string",
+                    "description": "Extra arguments to pass to Trim Galore! command in addition to defaults defined by the pipeline.",
+                    "fa_icon": "fas fa-plus"
+                },
+                "extra_fastp_args": {
+                    "type": "string",
+                    "description": "Extra arguments to pass to fastp command in addition to defaults defined by the pipeline.",
+                    "fa_icon": "fas fa-plus"
+                }
+            },
+            "fa_icon": "fas fa-cut"
+        },
+        "alignment_and_quantification": {
+            "title": "Alignment and quantification",
+            "type": "object",
+            "description": "",
+            "default": "",
+            "fa_icon": "fas fa-arrows-alt-h",
+            "properties": {
+                "extra_star_align_args": {
+                    "type": "string",
+                    "description": "Extra arguments to pass to STAR alignment command in addition to defaults defined by the pipeline. ",
+                    "fa_icon": "fas fa-plus"
+                },
+                "min_mapped_reads": {
+                    "type": "number",
+                    "default": 5,
+                    "fa_icon": "fas fa-percentage",
+                    "description": "Minimum percentage of uniquely mapped reads below which samples are removed from further processing.",
+                    "help_text": "Some downstream steps in the pipeline will fail if this threshold is too low."
+                },
+                "featurecounts_group_type": {
+                    "type": "string",
+                    "default": "exon"
+                },
+                "featurecounts_feature_type": {
+                    "type": "string",
+                    "default": "gene_id"
+                },
+                "featurecounts_biotype": {
+                    "type": "string",
+                    "default": "gene_biotype"
+                },
+                "stranded_threshold": {
+                    "type": "number",
+                    "minimum": 0.5,
+                    "maximum": 1,
+                    "default": 0.8,
+                    "description": "The fraction of stranded reads that must be assigned to a strandedness for confident assignment. Must be at least 0.5."
+                },
+                "unstranded_threshold": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "default": 0.1,
+                    "description": "The difference in fraction of stranded reads assigned to 'forward' and 'reverse' below which a sample is classified as 'unstranded'. By default the forward and reverse fractions must differ by less than 0.1 for the sample to be called as unstranded."
                 }
             }
         },
@@ -168,13 +278,18 @@
                     "fa_icon": "fas fa-wave-square",
                     "description": "LFC threshold to define significant genes for the Enrichment analysis."
                 },
+                "control_genes_list": {
+                    "type": "string",
+                    "description": "Path of a txt file with a list of genes to include in a matrix plot of the expression.",
+                    "fa_icon": "fas fa-list-ul"
+                },
                 "fdr_pathways": {
                     "type": "number",
                     "default": 0.05,
                     "fa_icon": "fas fa-level-down-alt",
                     "description": "FDR threshold to define significant pathways."
                 },
-		"n_pathways": {
+        		"n_pathways": {
                     "type": "integer",
                     "default": 25,
                     "fa_icon": "fas fa-level-down-alt",
@@ -182,6 +297,36 @@
                 }
             },
             "fa_icon": "fas fa-chart-bar"
+        },
+        "optional_outputs": {
+            "title": "Optional outputs",
+            "type": "object",
+            "description": "Save additional intermediate output files.",
+            "default": "",
+            "fa_icon": "fas fa-folder-plus",
+            "properties": {
+                "save_reference": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-save"
+                },
+                "save_merged_fastq": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-save"
+                },
+                "save_trimmed": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-save"
+                },
+                "save_align_intermeds": {
+                    "type": "boolean",
+                    "fa_icon": "fas fa-save"
+                },
+                "save_unaligned": {
+                    "type": "boolean",
+                    "default": true,
+                    "fa_icon": "fas fa-save"
+                }
+            }
         },
         "institutional_config_options": {
             "title": "Institutional config options",
@@ -334,7 +479,16 @@
             "$ref": "#/$defs/reference_genome_options"
         },
         {
+            "$ref": "#/$defs/trimming_options"
+        },
+        {
+            "$ref": "#/$defs/alignment_and_quantification"
+        },
+        {
             "$ref": "#/$defs/dimensionality_reduction_and_dea"
+        },
+        {
+            "$ref": "#/$defs/optional_outputs"
         },
         {
             "$ref": "#/$defs/institutional_config_options"

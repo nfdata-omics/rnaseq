@@ -67,7 +67,7 @@ data = data[isexpr,]
 var = apply(data, 1, var)
 names(var) = rownames(data)
 sorted_var = sort(var, decreasing=T)
-data = data[names(sorted_var[1:top_var]),]
+data = data[names(sorted_var[1:min(top_var, length(sorted_var))]),]
 # Saving data to produce dendrogram directly from python
 data2dendr = cbind(rownames(data), data)
 colnames(data2dendr)[1] = "gene_name"
@@ -94,7 +94,7 @@ write.table(var_df, paste("PCA_explained_variance",suffix,".txt",sep=""), quote=
 
 # MDS
 y_all = DGEList(counts=rna_exp@assays@data$counts, genes=rowData(rna_exp))
-y_all = y_all[names(sorted_var[1:top_var]),]
+y_all = y_all[names(sorted_var[1:min(top_var, length(sorted_var))]),]
 voom = voom(y_all, plot=F)
 mds = plotMDS(voom, main="MDS plot", plot=F)
 mds_score = data.frame(samples=rownames(mds@.Data[[5]]), x=mds$x, y=mds$y)

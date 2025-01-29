@@ -13,10 +13,11 @@
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-include { RNASEQ  } from './workflows/rnaseq'
+include { RNASEQ                  } from './workflows/rnaseq'
 include { PIPELINE_INITIALISATION } from './subworkflows/local/utils_nfcore_rnaseq_pipeline'
 include { PIPELINE_COMPLETION     } from './subworkflows/local/utils_nfcore_rnaseq_pipeline'
 include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_rnaseq_pipeline'
+include { PREPARE_REFERENCES      } from './subworkflows/local/prepare_references'
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -24,11 +25,13 @@ include { getGenomeAttribute      } from './subworkflows/local/utils_nfcore_rnas
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 */
 
-// TODO nf-core: Remove this line if you don't need a FASTA file
-//   This is an example of how to use getGenomeAttribute() to fetch parameters
-//   from igenomes.config using `--genome`
-params.fasta = getGenomeAttribute('fasta')
-params.ref_flat = getGenomeAttribute('ref_flat')
+// Use getGenomeAttribute() to fetch parameters from igenomes.config using `--genome`
+params.fasta            = getGenomeAttribute('fasta')
+params.gtf              = getGenomeAttribute('gtf')
+params.transcript_fasta = getGenomeAttribute('transcript_fasta')
+params.star_index       = getGenomeAttribute('star')
+params.salmon_index     = getGenomeAttribute('salmon')
+params.ref_flat         = getGenomeAttribute('ref_flat')
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -48,16 +51,44 @@ workflow NFDATAOMICS_RNASEQ {
 
     main:
 
+    ch_versions = Channel.empty()
+
+    //
+    // SUBWORKFLOW: Prepare reference files
+    //
+    PREPARE_REFERENCES(
+        params.fasta,
+        params.gtf,
+        params.transcript_fasta,
+        params.star_index,
+        params.salmon_index,
+        params.ref_flat
+    )
+    ch_versions = ch_versions.mix(PREPARE_REFERENCES.out.versions)
+
     //
     // WORKFLOW: Run pipeline
     //
     RNASEQ (
         samplesheet,
         counts,
-        metadata
+        metadata,
+        PREPARE_REFERENCES.out.fasta,
+        PREPARE_REFERENCES.out.gtf,
+        PREPARE_REFERENCES.out.fai,
+        PREPARE_REFERENCES.out.chrom_sizes,
+        PREPARE_REFERENCES.out.gene_bed,
+        PREPARE_REFERENCES.out.transcript_fasta,
+        PREPARE_REFERENCES.out.star_index,
+        PREPARE_REFERENCES.out.salmon_index,
+        PREPARE_REFERENCES.out.refflat,
+        ch_versions
     )
+    ch_versions = ch_versions.mix(RNASEQ.out.versions)
+
     emit:
     multiqc_report = RNASEQ.out.multiqc_report // channel: /path/to/multiqc_report.html
+    versions       = ch_versions               // channel: [version1, version2, ...]
 }
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
