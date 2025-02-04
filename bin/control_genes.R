@@ -110,6 +110,14 @@ if(annot[1]!=""){
 }
 dev.off()
 
+png("heatmap_control_genes_mqc.png", width=8, height=10, units="in", res=1200)
+if(annot[1]!=""){
+  pheatmap(data_ctrl, main="Heatmap of selected genes", display_numbers=F, scale=scale_value, cluster_rows=clRows, cluster_cols=clCols, annotation_col=col_annot)
+} else {
+  pheatmap(data_ctrl, main="Heatmap of selected genes", display_numbers=F, scale=scale_value, cluster_rows=clRows, cluster_cols=clCols)
+}
+dev.off()
+
 
 # Saving data
 data_ctrl = t(data_ctrl)

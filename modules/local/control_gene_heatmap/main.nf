@@ -10,9 +10,10 @@ process CONTROL_GENE_HEATMAP {
     val covariates_highlight
 
     output:
-    path "heatmap_control_genes.pdf", emit: heatmap_pdf
-    path "control_genes_exprs.txt",   emit: count_subset
-    path "versions.yml"            ,  emit: versions
+    path "heatmap_control_genes.pdf"    , emit: heatmap_pdf
+    path "heatmap_control_genes_mqc.png", emit: heatmap_png
+    path "control_genes_exprs.txt"      , emit: count_subset
+    path "versions.yml"                 , emit: versions
 
     when:
     task.ext.when == null || task.ext.when

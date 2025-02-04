@@ -9,9 +9,10 @@ process SAMPLES_CORRELATION {
     val covariates_highlight
 
     output:
-    path "samples_correlation_heatmap.pdf", emit: corr_heatmap_pdf
-    path "samples_correlation_table.txt"  , emit: corr_matrix
-    path "versions.yml"                   , emit: versions
+    path "samples_correlation_heatmap.pdf"    , emit: corr_heatmap_pdf
+    path "samples_correlation_heatmap_mqc.png", emit: corr_heatmap_png
+    path "samples_correlation_table.txt"      , emit: corr_matrix
+    path "versions.yml"                       , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -35,6 +36,7 @@ process SAMPLES_CORRELATION {
     """
     touch samples_correlation_table.txt
     touch samples_correlation_heatmap.pdf
+    touch samples_correlation_heatmap_mqc.png
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

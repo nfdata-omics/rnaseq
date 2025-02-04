@@ -95,6 +95,15 @@ if(annot[1]!=""){
 }
 dev.off()
 
+png("samples_correlation_heatmap_mqc.png", width=8, height=10, units="in", res=1200)
+if(annot[1]!=""){
+  pheatmap(my_cor, scale="none", display_numbers=disp, treeheight_row=0, annotation_col=col_annot)
+} else {
+  pheatmap(my_cor, scale="none", display_numbers=disp, treeheight_row=0)
+}
+dev.off()
+
+
 
 
 
