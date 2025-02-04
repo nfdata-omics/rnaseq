@@ -8,14 +8,15 @@ suppressMessages(library("openxlsx"))
 
 ### Script to perform first line functional enrichment using GSEA from clusterProfiler
 option_list <- list(
+  make_option(c("-F", "--FDR"), action="store", type="double", default=0.25, help="The FDR cutoff to define significant pathways. Results (table and GSEA curve) will be produced for significant pathways only. [default \"%default\"]"),
   make_option(c("-r", "--ranking"), action="store", type="character", default="logFC", help="The ranking statistics used to order genes. Possible options are 'logFC' or 'pvalue'. In case pvalue is selected, -log10(pval) will be multiplied by the sign of log2FC. [default \"%default\"]"),
   make_option(c("-v", "--version"), action="store_true", default=FALSE, help="Print the list of loaded package versions and exit.")
 )
 
 parser<-OptionParser(usage = "%prog [options] dge_toptable gmt_file",
                      option_list = option_list, prog = "gsea",
-                     description = "Perform log2FC-Preranked GSEA using the clusterProfiler R package. 
-                     'dge_toptable' is the path of the DGE toptable from which genes are sorted according to log2FC. The DGE toptable must have the following structure:
+                     description = "Perform Preranked GSEA using the clusterProfiler R package. 
+                     'dge_toptable' is the path of the DGE toptable from which genes are sorted according to the ranking statistic. The DGE toptable must have the following structure:
                      .META: dge_toptable
                         1. gene names
                         2. baseMean (average expression)
@@ -46,6 +47,7 @@ if(version){
 
 dge_toptable = arguments$args[1]
 gmt_file = arguments$args[2]
+fdr = opt$FDR
 rank = opt$ranking
 
 
@@ -54,14 +56,15 @@ toptable = read.delim(dge_toptable, h=T, row.names=1, check.names=F)
 # Defining output name TODO
 outname = gsub(".txt", "", gsub("deseq2_toptable", "gsea", dge_toptable))
 collection = gsub(".gmt", "", gmt_file)
-table_outname = paste(outname, collection, ".xlsx", sep="")
-plots_outname = paste(outname, collection, ".pdf", sep="")
+table_outname = paste(outname, collection, "xlsx", sep=".")
+plots_outname = paste(outname, collection, "pdf", sep=".")
 
 
 # Importing gmt
 my_gmt = read.gmt(gmt_file)
 
 # Ranked genelists (sorted according to logFC)
+toptable = toptable[,1:4]
 toptable = na.omit(toptable)
 if(rank == "logFC"){
   my_rnk = toptable$log2FoldChange
@@ -78,16 +81,16 @@ if(rank!="logFC" & rank!="pvalue"){
 }
 
 # Running GSEA
-my_gsea = GSEA(my_rnk, TERM2GENE=my_gmt, pvalueCutoff=0.5)
+my_gsea = GSEA(my_rnk, TERM2GENE=my_gmt, pvalueCutoff=fdr)
 curated_gsea = as.data.frame(my_gsea)
 
-if(nrow(curated_gsea)!=0){
+if(nrow(curated_gsea) > 0){
   # Save results
   #xlsx::write.xlsx(curated_gsea, table_outname, sheetName=collection, col.names=T, row.names=F, append=F)
   openxlsx::write.xlsx(x=curated_gsea, file=table_outname)
   # Make plots
   plot_list = list()
-  dim = ifelse(nrow(curated_gsea)<50, nrow(curated_gsea), 50)
+  dim = min(nrow(curated_gsea), 50)
   for(j in 1:dim){
     p = gseaplot2(my_gsea, geneSetID=j, title=my_gsea$Description[j])
     plot_list[[j]] = p
