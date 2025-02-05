@@ -53,7 +53,7 @@ rank = opt$ranking
 
 # Importing dge toptable
 toptable = read.delim(dge_toptable, h=T, row.names=1, check.names=F)
-# Defining output name TODO
+# Defining output name
 outname = gsub(".txt", "", gsub("deseq2_toptable", "gsea", dge_toptable))
 collection = gsub(".gmt", "", gmt_file)
 table_outname = paste(outname, collection, "xlsx", sep=".")
