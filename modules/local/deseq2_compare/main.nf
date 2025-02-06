@@ -1,12 +1,12 @@
 process DESEQ2_COMPARE {
-    tag "${meta.id}_$comparison"
+    tag "${meta.id}_${meta.cf}"
     label 'process_single'
 
     container "docker.io/nfdata/bulk_rnaseq:v1.0.1"
 
     input:
-    tuple val(meta), path(model)
-    val comparison
+    tuple val(meta), path(model), val(comparison)
+    val fdr_threshold
 
     output:
     tuple val(meta), path("deseq2_toptable.*.txt"), emit: dge
@@ -22,7 +22,7 @@ process DESEQ2_COMPARE {
     }
     args = task.ext.args ?: ''
     """
-    dge_deseq2_results.R $args $model $comparison
+    dge_deseq2_results.R $args --FDR $fdr_threshold $model "$comparison"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

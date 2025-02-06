@@ -342,18 +342,22 @@ workflow RNASEQ {
 
     // DEA AND FUNCTIONAL
 
+    channel
+        .fromList(params.comparisons.split(',').flatten())
+        .set{ comparisons_ch }
+
     DIFFERENTIAL_EXPRESSION(
         ch_counts_split,
         gene_column_nr,
         gene_id_index,
         metadata,
         params.model_formula,
-        params.comparisons,
+        comparisons_ch,
         params.frac_expressed,
         params.fdr_threshold,
         params.lfc_threshold,
-	params.fdr_pathways,
-	params.n_pathways
+	    params.fdr_pathways,
+	    params.n_pathways
     )
     ch_versions = ch_versions.mix(DIFFERENTIAL_EXPRESSION.out.versions)
 
