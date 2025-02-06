@@ -60,43 +60,44 @@ workflow DIFFERENTIAL_EXPRESSION {
 
         if ( comparisons_ch ) {
 
+            DESEQ2_FIT.out.rds
+                .combine(comparisons_ch)
+                .map{ meta, rds, cf -> [["id": meta.id, "cf": cf], rds, cf] }
+                .set{ ch_rds_cf }
+
             //
             // DESEQ2 COMPARISONS
             //
             DESEQ2_COMPARE(
-                DESEQ2_FIT.out.rds,
-                comparisons_ch
+                ch_rds_cf,
+                fdr_threshold
             )
-            DESEQ2_COMPARE.out.dge
-                .map { meta, dge -> [["id": meta.id, "cf": comparisons_ch], dge] }
-                .set { ch_dge }
             ch_versions = ch_versions.mix(DESEQ2_COMPARE.out.versions)
 
             //
             // FUNCTIONAL ANALYSIS: ENRICHR
             //
             ENRICHR(
-                ch_dge,
+                DESEQ2_COMPARE.out.dge,
                 fdr_threshold,
                 lfc_threshold
             )
-	    ch_enrichr = Channel
-    		.empty()
-    		.mix(
-        	    ENRICHR.out.enrich_all.filter { it != null },
-        	    ENRICHR.out.enrich_up.filter { it != null },
-        	    ENRICHR.out.enrich_down.filter { it != null }
-    		)
-	    ch_enrichr.view()
             ch_versions = ch_versions.mix(ENRICHR.out.versions)
+
+            ENRICHR.out.enrich_all
+                .mix(
+                    ENRICHR.out.enrich_up,
+                    ENRICHR.out.enrich_down
+                )
+                .set{ ch_enrichr }
 
             //
             // ENRICHR TOP RESULTS EXTRACTION
             //
             ENRICHR_TOPN(
-		ch_enrichr,
-		fdr_pathways,
-		n_pathways
+                ch_enrichr,
+                fdr_pathways,
+                n_pathways
             )
             ch_versions = ch_versions.mix(ENRICHR_TOPN.out.versions)
 
