@@ -18,8 +18,8 @@ process SAMPLES_CORRELATION {
     task.ext.when == null || task.ext.when
 
     script:
-    if (params.enable_conda) {
-        exit 1, "Conda environments cannot be used when using the this pipeline. Please use docker or singularity containers."
+    if (workflow.profile.tokenize(',').intersect(['conda', 'mamba']).size() >= 1) {
+        error "SAMPLES_CORRELATION module does not support Conda. Please use Docker / Singularity / Podman instead."
     }
     args = task.ext.args ?: ''
     cov_list = covariates_highlight ? "-a $covariates_highlight" : ''

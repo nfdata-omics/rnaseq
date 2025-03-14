@@ -13,7 +13,8 @@ option_list <- list(
 ### change logFC names
 parser<-OptionParser(usage = "%prog [options] input_model contrast",
                      option_list = option_list, prog = "dge_deseq2_results",
-                     description = "Extract results from a DGE model fitted with DESeq2. 
+                     description = "
+                     Extract results from a DGE model fitted with DESeq2. 
                      'input_model' is the path of the DESeq2 object containing the already fitted model.
                      'contrast' is a string of format variable:test:reference, with words separated by colon (:), where
                                 - 'variable' is the name of the variable (metadata column) on which the comparison will be performed (e.g. treatment). It must be one of the variables previously included in the model formula;

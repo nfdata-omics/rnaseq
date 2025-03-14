@@ -13,7 +13,8 @@ option_list <- list(
 
 parser<-OptionParser(usage = "%prog [options] rna_object",
                      option_list = option_list, prog = "count_norm",
-                     description = "Perform raw counts normalization into cpm and possibly rpkm. Rpkm are calculated only if gene length information was available in the original raw_counts matrix.
+                     description = "
+                     Perform raw counts normalization into cpm and possibly rpkm. Rpkm are calculated only if gene length information was available in the original raw_counts matrix.
                      'rna_object' is the path of a .rds object containing a Summarized Experiment with raw counts and samples metadata."
 )
 

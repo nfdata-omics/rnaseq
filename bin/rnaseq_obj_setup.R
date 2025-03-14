@@ -16,7 +16,8 @@ option_list <- list(
 
 parser<-OptionParser(usage = "%prog [options] raw_counts metadata",
                      option_list = option_list, prog = "rnaseq_obj_setup",
-                     description = "Setup the summarized experiment object containing raw counts and sample metadata, that will be used as input for the subsequent pipeline steps. 
+                     description = "
+                     Setup the summarized experiment object containing raw counts and sample metadata, that will be used as input for the subsequent pipeline steps. 
                      'raw_counts' is the path of a tab delimited file containing the raw counts matrix.
                      'metadata' is the path of a csv file containing sample metadata. Sample names must be reported in the first column. Columns containing numbers are assumed to be quantitative variables.
                      .META: raw_counts

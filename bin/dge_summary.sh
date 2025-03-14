@@ -12,7 +12,7 @@ if [ "$1" == "--help" ] || [ "$1" == "-h" ]; then
   echo "  If no directory is provided, the current directory is used by default."
   echo
   echo "Parameters:"
-  echo "  working_directory (optional) - Path to the directory containing the 'deseq2_summary.*' files to evaluate."
+  echo "  working_directory (optional) - Path to the parent directory (usually dea_Set_Of_Samples) containing contrast subfolders (e.g. dea_Group-A-B) in which the 'deseq2_summary.*' files to evaluate are stored."
   echo
   echo "Output:"
   echo "  A summary file named '<working_directory>_summary' is created in the provided directory."
@@ -26,4 +26,4 @@ WORK_DIR="${1:-$DEFAULT_WORK_DIR}"
 cd "$WORK_DIR" || { echo "Error: Cannot navigate to directory $WORK_DIR"; exit 1; }
 
 # Producing the overall dge summary for the considered set of samples
-cat <(echo -e 'Comparison\tUpreg\tUpreg_percent\tDownreg\tDownreg_percent') <(for i in deseq2_summary.*; do j=${i%.txt}; z=${j#deseq2_summary.}; paste <(echo $z) <(cat $i | grep up | sed 's/.*: //' | tr -d ' ' | tr ',' '\t') <(cat $i | grep down | sed 's/.*: //' | tr -d ' ' | tr ',' '\t'); done) > $(basename $(pwd))_summary
+cat <(echo -e 'Comparison\tUpreg\tUpreg_percent\tDownreg\tDownreg_percent') <(for i in dea_*/deseq2_summary.*; do k=$(basename $i); j=${k%.txt}; z=${j#deseq2_summary.}; paste <(echo $z) <(cat $i | grep up | sed 's/.*: //' | tr -d ' ' | tr ',' '\t') <(cat $i | grep down | sed 's/.*: //' | tr -d ' ' | tr ',' '\t'); done) > $(basename $(pwd))_summary
