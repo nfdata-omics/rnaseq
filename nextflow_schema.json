@@ -221,7 +221,7 @@
                 },
                 "featurecounts_biotype": {
                     "type": "string",
-                    "default": "gene_biotype"
+                    "default": "gene_type"
                 },
                 "stranded_threshold": {
                     "type": "number",
@@ -283,13 +283,18 @@
                     "description": "Path of a txt file with a list of genes to include in a matrix plot of the expression.",
                     "fa_icon": "fas fa-list-ul"
                 },
+                "genesets": {
+                    "type": "string",
+                    "description": "Comma separated list of gmt files for the functional analysis",
+                    "fa_icon": "fas fa-list-ol"
+                },
                 "fdr_pathways": {
                     "type": "number",
                     "default": 0.05,
                     "fa_icon": "fas fa-level-down-alt",
                     "description": "FDR threshold to define significant pathways."
                 },
-        		"n_pathways": {
+                "n_pathways": {
                     "type": "integer",
                     "default": 25,
                     "fa_icon": "fas fa-level-down-alt",

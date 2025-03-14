@@ -1,10 +1,14 @@
 
-include { OBJ_CONSTRUCTION }      from '../../modules/local/obj_construction/main'
-include { R_COUNT_NORM }          from '../../modules/local/r_count_norm/main'
-include { DESEQ2_FIT }            from '../../modules/local/deseq2_fit/main'
-include { DESEQ2_COMPARE }        from '../../modules/local/deseq2_compare/main'
-include { ENRICHR }               from '../../modules/local/enrichr/main'
-include { ENRICHR_TOPN }          from '../../modules/local/enrichr_topn/main'
+include { OBJ_CONSTRUCTION }          from '../../modules/local/obj_construction/main'
+include { R_COUNT_NORM }              from '../../modules/local/r_count_norm/main'
+include { DESEQ2_FIT }                from '../../modules/local/deseq2_fit/main'
+include { DESEQ2_COMPARE }            from '../../modules/local/deseq2_compare/main'
+include { ENRICHR }                   from '../../modules/local/enrichr/main'
+include { ENRICHR_TOPN }              from '../../modules/local/enrichr_topn/main'
+include { GSEA }                      from '../../modules/local/gsea/main'
+include { GSEA_MERGE }                from '../../modules/local/gsea_merge/main'
+include { CLUSTERPROFILER_ORA }       from '../../modules/local/clusterprofiler_ora/main'
+include { CLUSTERPROFILER_ORA_MERGE } from '../../modules/local/clusterprofiler_ora_merge/main'
 
 workflow DIFFERENTIAL_EXPRESSION {
     take:
@@ -14,6 +18,7 @@ workflow DIFFERENTIAL_EXPRESSION {
     metadata_table
     model_formula
     comparisons_ch
+    genesets_ch
     frac_expressed
     fdr_threshold
     lfc_threshold
@@ -74,6 +79,12 @@ workflow DIFFERENTIAL_EXPRESSION {
             )
             ch_versions = ch_versions.mix(DESEQ2_COMPARE.out.versions)
 
+            DESEQ2_COMPARE.out.dge
+                .combine(genesets_ch)
+                .map{ meta, dge, geneset -> [ meta + ["geneset": file(geneset).baseName], dge, geneset] }
+                .set{ ch_dge_geneset }
+
+
             //
             // FUNCTIONAL ANALYSIS: ENRICHR
             //
@@ -100,6 +111,77 @@ workflow DIFFERENTIAL_EXPRESSION {
                 n_pathways
             )
             ch_versions = ch_versions.mix(ENRICHR_TOPN.out.versions)
+
+            
+
+            //
+            // FUNCTIONAL ANALYSIS: GSEA
+            //
+            GSEA(
+                ch_dge_geneset,
+                fdr_pathways
+            )
+            ch_versions = ch_versions.mix(GSEA.out.versions)
+
+            GSEA.out.xlsx
+                .map{ meta, result -> [[meta.id, meta.cf], meta, result] }
+                .groupTuple()
+                .map{ _key, metas, results -> [["id": metas[0].id, "cf": metas[0].cf], results] }
+                .set{ ch_gsea }
+
+            
+            //
+            // GSEA MERGING
+            //
+            GSEA_MERGE(
+                ch_gsea
+            )
+            ch_versions = ch_versions.mix(GSEA_MERGE.out.versions)
+
+
+            //
+            // FUNCTIONAL ANALYSIS: CLUSTERPROFILER OVER-REPRESENTATION
+            //
+            CLUSTERPROFILER_ORA(
+                ch_dge_geneset,
+                fdr_threshold,
+                lfc_threshold
+            )
+            ch_versions = ch_versions.mix(CLUSTERPROFILER_ORA.out.versions)
+
+            CLUSTERPROFILER_ORA.out.CP_all
+                .map{ meta, result -> [[meta.id, meta.cf], meta, result] }
+                .groupTuple()
+                .map{ _key, metas, results -> [["id": metas[0].id, "cf": metas[0].cf], results] }
+                .set{ ch_CP_all }
+            CLUSTERPROFILER_ORA.out.CP_up
+                .map{ meta, result -> [[meta.id, meta.cf], meta, result] }
+                .groupTuple()
+                .map{ _key, metas, results -> [["id": metas[0].id, "cf": metas[0].cf], results] }
+                .set{ ch_CP_up }
+            CLUSTERPROFILER_ORA.out.CP_down
+                .map{ meta, result -> [[meta.id, meta.cf], meta, result] }
+                .groupTuple()
+                .map{ _key, metas, results -> [["id": metas[0].id, "cf": metas[0].cf], results] }
+                .set{ ch_CP_down }
+
+            ch_CP_all
+                .mix(
+                    ch_CP_up,
+                    ch_CP_down
+                )
+                .set{ ch_CP }
+
+
+            //
+            // CLUSTERPROFILER OVER-REPRESENTATION MERGING
+            //
+            CLUSTERPROFILER_ORA_MERGE(
+                ch_CP,
+                fdr_pathways,
+                n_pathways
+            )
+            ch_versions = ch_versions.mix(CLUSTERPROFILER_ORA.out.versions)
 
         }
     }

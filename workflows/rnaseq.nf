@@ -345,6 +345,9 @@ workflow RNASEQ {
     channel
         .fromList(params.comparisons.split(',').flatten())
         .set{ comparisons_ch }
+    channel
+        .fromList(params.genesets.split(',').flatten())
+        .set{ genesets_ch }
 
     DIFFERENTIAL_EXPRESSION(
         ch_counts_split,
@@ -353,11 +356,12 @@ workflow RNASEQ {
         metadata,
         params.model_formula,
         comparisons_ch,
+        genesets_ch,
         params.frac_expressed,
         params.fdr_threshold,
         params.lfc_threshold,
-	    params.fdr_pathways,
-	    params.n_pathways
+        params.fdr_pathways,
+        params.n_pathways
     )
     ch_versions = ch_versions.mix(DIFFERENTIAL_EXPRESSION.out.versions)
 

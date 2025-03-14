@@ -17,7 +17,8 @@ option_list <- list(
 
 parser<-OptionParser(usage = "%prog [options] rna_object",
                      option_list = option_list, prog = "pca_mds",
-                     description = "Perform PCA and MDS on the expression values (cpm or rpkm for PCA and limma-voom normalized counts for MDS) of the most variable genes among the expressed ones, as defined by the options.
+                     description = "
+                     Perform PCA and MDS on the expression values (cpm or rpkm for PCA and limma-voom normalized counts for MDS) of the most variable genes among the expressed ones, as defined by the options.
                      'rna_object' is the path of a .rds object containing a Summarized Experiment with expression data and samples metadata."
 )
 

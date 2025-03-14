@@ -25,7 +25,7 @@ process CONTROL_GENE_HEATMAP {
     args = task.ext.args ?: ''
     cov_list = covariates_highlight ? "-a $covariates_highlight" : ''
     """
-    control_genes.R $args -s $cov_list \
+    control_genes.R $args $cov_list \
         $normalized_counts $gene_list
 
     cat <<-END_VERSIONS > versions.yml

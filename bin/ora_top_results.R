@@ -13,7 +13,8 @@ option_list <- list(
 
 parser<-OptionParser(usage = "%prog [options] enrichr_full_output",
                      option_list = option_list, prog = "ora_top_results",
-                     description = "Extract the top N most significantly enriched pathways from all collections previously tested with enrichR. If fewer than N pathways are extracted, it indicates that fewer pathways satisfy the FDR cutoff.
+                     description = "
+                     Extract the top N most significantly enriched pathways from all collections previously tested with enrichR. If fewer than N pathways are extracted, it indicates that fewer pathways satisfy the FDR cutoff.
                      'enrichr_full_output' is the path of the .xlsx file containing all enrichR results from which significant pathways will be extracted.")
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)

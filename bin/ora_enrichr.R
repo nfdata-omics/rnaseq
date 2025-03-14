@@ -13,7 +13,8 @@ option_list <- list(
 
 parser<-OptionParser(usage = "%prog [options] dge_toptable",
                      option_list = option_list, prog = "ora_enrichr",
-                     description = "Perform over-representation analysis using the enrichR R package. 
+                     description = "
+                     Perform over-representation analysis using the enrichR R package. 
                      'dge_toptable' is the path of the DGE toptable from which significant genes are extracted. The DGE toptable must have the following structure:
                      .META: dge_toptable
                         1. gene names

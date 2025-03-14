@@ -15,7 +15,8 @@ option_list <- list(
 
 parser<-OptionParser(usage = "%prog [options] dge_toptable gmt_file",
                      option_list = option_list, prog = "ora_clusterProfiler",
-                     description = "Perform over-representation analysis using the clusterProfiler R package. 
+                     description = "
+                     Perform over-representation analysis using the clusterProfiler R package. 
                      'dge_toptable' is the path of the DGE toptable from which significant genes are extracted. The DGE toptable must have the following structure:
                      .META: dge_toptable
                         1. gene names
@@ -80,7 +81,11 @@ if(length(my_genes)>=5){
   # BgRatio = M/N, with M = #genes in the selected pathway that are also in the background; with N = #unique genes in all the gmt (all pathways) that are also in the background
   # GeneRatio = M/N, with M = #my input genes that are also in the selected pathway; with N = #my input genes that are also in all the gmt (all pathways)
   write.table(x=my_enrich@result, file=paste(outname, ".", collection, ".all.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
+} else {
+  no_enrichment = data.frame(empty=paste("Enrichment analysis was not performed. Less than 5 significant genes were retrieved using the cutoff FDR<", fdr, ", abs_log2FC>", logfc, ".", sep=""))
+  write.table(x=no_enrichment, file=paste(outname, ".", collection, ".all.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
 }
+
 if(length(my_genes_up)>=5){
   if(length(my_genes_up)>10000){
     my_genes_up = my_genes_up[1:10000]
@@ -89,7 +94,11 @@ if(length(my_genes_up)>=5){
   }
   my_enrich_up = enricher(gene=my_genes_up, universe=background_genes, maxGSSize=1000, TERM2GENE=my_gmt)
   write.table(x=my_enrich_up@result, file=paste(outname, ".", collection, ".up.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
+} else {
+  no_enrichment = data.frame(empty=paste("Enrichment analysis was not performed. Less than 5 significant genes were retrieved using the cutoff FDR<", fdr, ", abs_log2FC>", logfc, ".", sep=""))
+  write.table(x=no_enrichment, file=paste(outname, ".", collection, ".up.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
 }
+
 if(length(my_genes_down)>=5){
   if(length(my_genes_down)>10000){
     my_genes_down = my_genes_down[1:10000]
@@ -98,6 +107,9 @@ if(length(my_genes_down)>=5){
   }
   my_enrich_down = enricher(gene=my_genes_down, universe=background_genes, maxGSSize=1000, TERM2GENE=my_gmt)
   write.table(x=my_enrich_down@result, file=paste(outname, ".", collection, ".down.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
+} else {
+  no_enrichment = data.frame(empty=paste("Enrichment analysis was not performed. Less than 5 significant genes were retrieved using the cutoff FDR<", fdr, ", abs_log2FC>", logfc, ".", sep=""))
+  write.table(x=no_enrichment, file=paste(outname, ".", collection, ".down.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
 }
 
 
