@@ -44,7 +44,7 @@ def main():
         raise FileNotFoundError(f"The specified output folder does not exist: {args.output_folder}")
 
     # get the list of all dea tables present in the output folder
-    deseq2_table_list = glob.glob(str(args.output_folder / "downstream/dea_*/deseq2_toptable.*.txt"))
+    deseq2_table_list = glob.glob(str(args.output_folder / "downstream/dea_*/dea_*/deseq2_toptable.*.txt"))
 
     for data_path in deseq2_table_list:
 
