@@ -88,13 +88,13 @@ if(annot == ""){
   # One violin plot for each category of the selected variable
   pdf("violin_plots_control_genes.pdf")
   if(jit){
-    for(i in colnames(data_ctrl)){
+    for(i in colnames(data_ctrl)[1:(ncol(data_ctrl)-1)]){
       p = ggplot(data_ctrl, aes(x=group, y=data_ctrl[,i], fill=group)) + geom_violin() + geom_jitter(shape=16, position=position_jitter(0.2)) + theme_minimal()
       p = p + labs(title=i, y="CPM") + theme(title=element_text(size=20), axis.text=element_text(size=15), legend.text=element_text(size=15))
       print(p)
     }
   } else{
-    for(i in colnames(data_ctrl)){
+    for(i in colnames(data_ctrl)[1:(ncol(data_ctrl)-1)]){
       p = ggplot(data_ctrl, aes(x=group, y=data_ctrl[,i], fill=group)) + geom_violin() + geom_boxplot(width=0.1) + theme_minimal()
       p = p + labs(title=i, y="CPM") + theme(title=element_text(size=20), axis.text=element_text(size=15), legend.text=element_text(size=15))
       print(p)
