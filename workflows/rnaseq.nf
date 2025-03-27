@@ -15,6 +15,7 @@ include { DIM_REDUCTION }           from '../subworkflows/local/dim_reduction'
 include { BAM_MARKDUPLICATES_PICARD } from '../subworkflows/nf-core/bam_markduplicates_picard/main'
 include { SUBREAD_FEATURECOUNTS as SUBREAD_FEATURECOUNTS_GENES } from '../modules/nf-core/subread/featurecounts/main'
 include { SUBREAD_FEATURECOUNTS as SUBREAD_FEATURECOUNTS_BIOTYPES } from '../modules/nf-core/subread/featurecounts/main'
+include { multiqcTsvFromList     } from '../subworkflows/nf-core/fastq_qc_trim_filter_setstrandedness'
 
 include { PICARD_COLLECTRNASEQMETRICS } from '../modules/nf-core/picard/collectrnaseqmetrics/main'
 include { SAMPLE_FILTER }               from '../modules/local/sample_filter'
@@ -24,6 +25,7 @@ include { MULTIQC_CUSTOM_BIOTYPE             } from '../modules/local/multiqc_cu
 include { GENEID_TO_GENENAME             } from '../modules/local/geneid_to_genename'
 include { JOIN_FEATURECOUNTS_MATRIX      } from '../modules/local/join_featurecounts_matrix/main'
 include { SAMTOOLS_SORT      } from '../modules/nf-core/samtools/sort/main'
+
 
 /*
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
