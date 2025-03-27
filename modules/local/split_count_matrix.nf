@@ -33,11 +33,13 @@ split_file = "$split_file"
 
 # read count matrix
 df = pd.read_csv(count_file, sep='\\t')
+
+# identify samples present in the count matrix
 samples = df.columns[gene_column_nr:].to_list()
 print(f"Read count matrix with {df.shape[0]} rows and {df.shape[1]} columns.")
 print(f"The matrix contains {len(samples)} sample columns.\\n")
 
-# identify samples present in the count matrix
+# identify gene information present in the count matrix
 gene_metadata = df.columns[:gene_column_nr].to_list()
 print(f"Count annotation columns: {gene_metadata}\\nThese columns will be maintained in all the subset matrix files\\n")
 
@@ -48,7 +50,17 @@ sample_lists = pd.read_csv(split_file, index_col=0, header=None).T
 for c in sample_lists.columns:
     print(f"Subset {c} of the full count matrix")
     sample_subset = sample_lists[c].dropna().tolist()
-    count_matrix_subset = df[gene_metadata + sample_subset]
+
+    # Evaluate overlap
+    actual_samples = set(sample_subset) & set(samples)
+    missing_samples = set(sample_subset) - set(samples)
+    print(f"  - Found {len(actual_samples)} matching samples in the count matrix.")
+    if missing_samples:
+        print(f"  - Warning: {len(missing_samples)} samples in the list are not present in the count matrix.")
+        print(f"    Missing samples: {', '.join(missing_samples)}")
+
+    # Subset count matrix with the available samples
+    count_matrix_subset = df[gene_metadata + list(actual_samples)]
     print(f"Subset matrix has {count_matrix_subset.shape[0]} rows and {count_matrix_subset.shape[1]} columns.")
     out_fname = f"{c}.subset.tsv"
     count_matrix_subset.to_csv(out_fname, sep="\\t", header=True, index=False)
