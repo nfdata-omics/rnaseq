@@ -19,11 +19,12 @@ process JOIN_FEATURECOUNTS_MATRIX {
     task.ext.when == null || task.ext.when
 
     script:
+    def genename_arg = gene_metadata.name != 'NO_FILE' ? "--genemeta $gene_metadata" : ''
     """
 #!/bin/bash
 
 join_featurecounts_matrix.py \
-    --genemeta ${gene_metadata} --output joined_matrix.tsv \
+    ${genename_arg} --output joined_matrix.tsv \
     ${count_matrix}
 
 cat <<-END_VERSIONS > versions.yml

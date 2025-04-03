@@ -223,6 +223,11 @@
                     "type": "string",
                     "default": "gene_type"
                 },
+                "gene_name": {
+                    "type": "string",
+                    "default": "gene_name",
+                    "description": "The attribute to extract from the GTF file to annotate genes with their names"
+                },
                 "stranded_threshold": {
                     "type": "number",
                     "minimum": 0.5,
