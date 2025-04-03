@@ -219,9 +219,14 @@ workflow RNASEQ {
     ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_GENES.out.versions.first())
 
     GENEID_TO_GENENAME(
-        ch_gtf
+        ch_gtf,
+        params.featurecounts_group_type,
+        params.gene_name
     )
     ch_versions = ch_versions.mix(GENEID_TO_GENENAME.out.versions)
+
+    // Check if gene names were found in GTF file, if not use NO_FILE dummy file
+    gene_metadata = GENEID_TO_GENENAME.out.gene_names.ifEmpty(file("$projectDir/assets/NO_FILE", checkIfExists:true))
 
     SUBREAD_FEATURECOUNTS_GENES.out.counts
         .map{ it -> it[1] }
@@ -230,7 +235,7 @@ workflow RNASEQ {
 
     JOIN_FEATURECOUNTS_MATRIX(
         ch_sample_counts,
-        GENEID_TO_GENENAME.out.gene_names
+        gene_metadata
     )
 
     //
@@ -283,8 +288,16 @@ workflow RNASEQ {
         gene_id_index = params.gene_id_index
     } else {
         ch_count_matrix = JOIN_FEATURECOUNTS_MATRIX.out.joined_counts
-        gene_column_nr = 7
-        gene_id_index = 7
+        gene_column_nr = Channel.of("7")
+            .combine(GENEID_TO_GENENAME.out.gene_names)
+            .map { it[0] }
+            .ifEmpty("6")
+            .first()
+        gene_id_index = Channel.of("7")
+            .combine(GENEID_TO_GENENAME.out.gene_names)
+            .map { it[0] }
+            .ifEmpty("1")
+            .first()
     }
 
     if ( params.exclude_list ) {
@@ -327,7 +340,7 @@ workflow RNASEQ {
         SPLIT_COUNT_MATRIX(
             ch_counts_filt,
             gene_column_nr,
-            file(params.split_file)
+            file(params.split_file, checkIfExists: true),
         )
         ch_versions = ch_versions.mix(SPLIT_COUNT_MATRIX.out.versions)
 

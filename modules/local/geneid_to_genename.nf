@@ -9,9 +9,11 @@ process GENEID_TO_GENENAME {
 
     input:
     path gtf_file
+    val gtf_filter
+    val gene_name
 
     output:
-    path "GeneName_dict.txt", emit: gene_names
+    path "GeneName_dict.txt", emit: gene_names, optional: true
     path "versions.yml",           emit: versions
 
     when:
@@ -24,10 +26,15 @@ process GENEID_TO_GENENAME {
 
 echo "Geneid\tGeneName" > GeneName_dict.txt
 $command $gtf_file | grep -v "##" \
-    | awk -F"\\t" '(\$3=="transcript") {print \$9}' \
-    | sed -n 's/.*gene_id "\\([^ ]*\\)".*gene_name "\\([^ ]*\\)".*/\\1\\t\\2/p' \
+    | awk -F"\\t" '(\$3=="$gtf_filter") {print \$9}' \
+    | sed -n 's/.*gene_id "\\([^ ]*\\)".*$gene_name "\\([^ ]*\\)".*/\\1\\t\\2/p' \
     | sort -u \
     >> GeneName_dict.txt
+
+if [[ \$(wc -l < GeneName_dict.txt) -eq 1 ]]; then
+    echo "No gene names found in GTF file."
+    rm GeneName_dict.txt
+fi
 
 cat <<-END_VERSIONS > versions.yml
 "${task.process}":
