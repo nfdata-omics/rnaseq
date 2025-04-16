@@ -47,7 +47,7 @@ logfc = opt$logfc
 
 
 # Full list of pathway source
-databases <- listEnrichrDbs()
+#databases <- listEnrichrDbs()
 # Selected databases to make the enrichment of (chosen from databases)
 enrich.databases <- c("GO_Biological_Process_2023",
                       "GO_Cellular_Component_2023",
@@ -64,9 +64,8 @@ enrich.databases <- c("GO_Biological_Process_2023",
 # Importing dge toptable
 toptable = read.delim(dge_toptable, h=T, row.names=1, check.names=F)
 # Defining output name
-outname = gsub("deseq2_toptable", "enrichr", dge_toptable)
+outname = gsub(".txt", "", gsub("deseq2_toptable", "enrichr", dge_toptable))
 summary_name = gsub("deseq2_toptable", "enrichr_summary", dge_toptable)
-outname = gsub(".txt", "", outname)
 
 # Extracting significant genes using specified FDR and log2FC cutoffs
 toptable = toptable[!is.na(toptable$padj),]
