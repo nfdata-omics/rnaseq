@@ -217,6 +217,7 @@ workflow RNASEQ {
         ch_featurecounts
     )
     ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_GENES.out.versions.first())
+    ch_multiqc_files = ch_multiqc_files.mix(SUBREAD_FEATURECOUNTS_GENES.out.summary.collect{it[1]})
 
     GENEID_TO_GENENAME(
         ch_gtf,
