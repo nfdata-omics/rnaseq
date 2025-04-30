@@ -3,8 +3,8 @@ include { OBJ_CONSTRUCTION }          from '../../modules/local/obj_construction
 include { R_COUNT_NORM }              from '../../modules/local/r_count_norm/main'
 include { DESEQ2_FIT }                from '../../modules/local/deseq2_fit/main'
 include { DESEQ2_COMPARE }            from '../../modules/local/deseq2_compare/main'
-include { ENRICHR }                   from '../../modules/local/enrichr/main'
-include { ENRICHR_TOPN }              from '../../modules/local/enrichr_topn/main'
+//include { ENRICHR }                   from '../../modules/local/enrichr/main'
+//include { ENRICHR_TOPN }              from '../../modules/local/enrichr_topn/main'
 include { GSEA }                      from '../../modules/local/gsea/main'
 include { GSEA_MERGE }                from '../../modules/local/gsea_merge/main'
 include { CLUSTERPROFILER_ORA }       from '../../modules/local/clusterprofiler_ora/main'
@@ -88,6 +88,7 @@ workflow DIFFERENTIAL_EXPRESSION {
             //
             // FUNCTIONAL ANALYSIS: ENRICHR
             //
+            /*
             ENRICHR(
                 DESEQ2_COMPARE.out.dge,
                 fdr_threshold,
@@ -111,6 +112,7 @@ workflow DIFFERENTIAL_EXPRESSION {
                 n_pathways
             )
             ch_versions = ch_versions.mix(ENRICHR_TOPN.out.versions)
+            */
 
             
 
