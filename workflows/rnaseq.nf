@@ -277,6 +277,8 @@ workflow RNASEQ {
         ch_fasta,
         []
     )
+    ch_multiqc_files = ch_multiqc_files.mix(PICARD_COLLECTRNASEQMETRICS.out.metrics.collect{it[1]})
+    ch_versions = ch_versions.mix(PICARD_COLLECTRNASEQMETRICS.out.versions)
 
     //
     // DOWNSTREAM ANALYSIS OF COUNT MATRIX
