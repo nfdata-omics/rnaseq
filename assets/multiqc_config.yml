@@ -46,6 +46,14 @@ report_section_order:
     order: 1001
   star_rsem_deseq2_clustering:
     order: 1000
+  # Normalization and dimensionality reduction
+  r_count_norm:
+    order: 901
+  dim_reduction:
+    order: 900
+  # Differential expression analysis
+  deseq2:
+    order: 800
   # Summaries
   "nfdata-omics-rnaseq-methods-description":
     order: -1000
@@ -69,6 +77,9 @@ run_modules:
   - featurecounts
   - samtools
   - picard
+  - deseq2
+  - dim_reduction
+  - r_count_norm
 
 # Order of modules
 

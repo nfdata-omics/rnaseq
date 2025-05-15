@@ -16,6 +16,7 @@ workflow DIM_REDUCTION {
     main:
 
     ch_versions = Channel.empty()
+    ch_multiqc_files = Channel.empty()
 
     //
     // R-OBJECT CONSTRUCTION
@@ -38,6 +39,7 @@ workflow DIM_REDUCTION {
         OBJ_CONSTRUCTION.out.rds
     )
     ch_versions = ch_versions.mix(R_COUNT_NORM.out.versions)
+    ch_multiqc_files = ch_multiqc_files.mix(R_COUNT_NORM.out.size_factors)
 
     //
     // HEATMAP OF CONTROL GENES
@@ -66,8 +68,12 @@ workflow DIM_REDUCTION {
         frac_expressed
     )
     ch_versions = ch_versions.mix(PCA_AND_MDS.out.versions)
+    ch_multiqc_files = ch_multiqc_files.mix(PCA_AND_MDS.out.pca)
+        .mix(PCA_AND_MDS.out.pca_var)
+        .mix(PCA_AND_MDS.out.mds)
 
     emit:
     versions    = ch_versions
+    multiqc_files   = ch_multiqc_files
 
 }

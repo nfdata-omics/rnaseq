@@ -335,6 +335,7 @@ workflow RNASEQ {
         params.frac_expressed
     )
     ch_versions = ch_versions.mix(DIM_REDUCTION.out.versions)
+    ch_multiqc_files = ch_multiqc_files.mix(DIM_REDUCTION.out.multiqc_files)
 
     // COUNT SUBSETS
 
@@ -382,6 +383,7 @@ workflow RNASEQ {
         params.n_pathways
     )
     ch_versions = ch_versions.mix(DIFFERENTIAL_EXPRESSION.out.versions)
+    ch_multiqc_files = ch_multiqc_files.mix(DIFFERENTIAL_EXPRESSION.out.multiqc_files)
 
     //
     // Collate and save software versions

@@ -29,6 +29,7 @@ workflow DIFFERENTIAL_EXPRESSION {
     main:
 
     ch_versions = Channel.empty()
+    ch_multiqc_files = Channel.empty()
 
     //
     // R-OBJECT CONSTRUCTION
@@ -79,6 +80,8 @@ workflow DIFFERENTIAL_EXPRESSION {
                 fdr_threshold
             )
             ch_versions = ch_versions.mix(DESEQ2_COMPARE.out.versions)
+            ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_COMPARE.out.dge.collect{it[1]})
+                .mix(DESEQ2_COMPARE.out.summary)
 
             DESEQ2_COMPARE.out.dge
                 .combine(genesets_ch)
@@ -200,4 +203,5 @@ workflow DIFFERENTIAL_EXPRESSION {
 
     emit:
     versions    = ch_versions
+    multiqc_files   = ch_multiqc_files
 }
