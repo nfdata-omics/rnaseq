@@ -9,6 +9,7 @@ include { GSEA }                      from '../../modules/local/gsea/main'
 include { GSEA_MERGE }                from '../../modules/local/gsea_merge/main'
 include { CLUSTERPROFILER_ORA }       from '../../modules/local/clusterprofiler_ora/main'
 include { CLUSTERPROFILER_ORA_MERGE } from '../../modules/local/clusterprofiler_ora_merge/main'
+include { SUMMARY_TABLE }             from '../../modules/local/summary_table'
 
 workflow DIFFERENTIAL_EXPRESSION {
     take:
@@ -84,6 +85,15 @@ workflow DIFFERENTIAL_EXPRESSION {
                 .map{ meta, dge, geneset -> [ meta + ["geneset": file(geneset).baseName], dge, geneset] }
                 .set{ ch_dge_geneset }
 
+            DESEQ2_COMPARE.out.summary
+                .map{ meta, result -> [meta.id, meta.cf, result] }
+                .groupTuple()
+                .map{ key, cfs, results -> [["id": key], cfs, results] }
+                .set{ ch_dge_summary }
+
+            SUMMARY_TABLE(
+                ch_dge_summary,
+            )
 
             //
             // FUNCTIONAL ANALYSIS: ENRICHR
