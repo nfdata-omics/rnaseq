@@ -10,7 +10,7 @@ process DESEQ2_COMPARE {
 
     output:
     tuple val(meta), path("deseq2_toptable.*.txt"), emit: dge
-    path "deseq2_summary.*.txt"                   , emit: summary
+    tuple val(meta), path("deseq2_summary.*.txt") , emit: summary
     path "versions.yml"                           , emit: versions
 
     when:
