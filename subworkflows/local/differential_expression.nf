@@ -81,7 +81,6 @@ workflow DIFFERENTIAL_EXPRESSION {
             )
             ch_versions = ch_versions.mix(DESEQ2_COMPARE.out.versions)
             ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_COMPARE.out.dge.collect{it[1]})
-                .mix(DESEQ2_COMPARE.out.summary)
 
             DESEQ2_COMPARE.out.dge
                 .combine(genesets_ch)
@@ -97,6 +96,7 @@ workflow DIFFERENTIAL_EXPRESSION {
             SUMMARY_TABLE(
                 ch_dge_summary,
             )
+            ch_multiqc_files = ch_multiqc_files.mix(SUMMARY_TABLE.out.joint_summary)
 
             //
             // FUNCTIONAL ANALYSIS: ENRICHR
