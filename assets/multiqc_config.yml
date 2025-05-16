@@ -28,10 +28,10 @@ report_section_order:
     order: 3001
   # Quantification
   featurecounts:
-    order: 2000
+    order: 2001
   # Post-quantification QC
-  featurecounts_biotype:
-    order: 3000
+  biotype_counts:
+    order: 2000
   sample-relationships:
     order: 1006
   star_salmon_deseq2_pca:
@@ -128,7 +128,6 @@ sp:
 
   picard/markdups:
     fn: "*.MarkDuplicates.metrics.txt"
-
 
 # See https://github.com/ewels/MultiQC_TestData/blob/master/data/custom_content/with_config/table_headerconfig/multiqc_config.yaml
 custom_data:
