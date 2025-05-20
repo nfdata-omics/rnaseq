@@ -404,9 +404,8 @@ workflow RNASEQ {
     ch_multiqc_custom_config = params.multiqc_config ?
         Channel.fromPath(params.multiqc_config, checkIfExists: true) :
         Channel.empty()
-    ch_multiqc_logo          = params.multiqc_logo ?
-        Channel.fromPath(params.multiqc_logo, checkIfExists: true) :
-        Channel.empty()
+    ch_multiqc_logo          = Channel.fromPath(
+        "$projectDir/assets/01_HTlogo_pantone_colore.png", checkIfExists: true)
 
     summary_params      = paramsSummaryMap(
         workflow, parameters_schema: "nextflow_schema.json")

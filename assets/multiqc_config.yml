@@ -23,29 +23,17 @@ report_section_order:
     order: 3100
   # Post-alignment QC
   picard:
-    order: 3002
-  samtools:
     order: 3001
+  samtools:
+    order: 3002
   # Quantification
   featurecounts:
-    order: 2001
+    order: 2002
   # Post-quantification QC
   biotype_counts:
+    order: 2001
+  sample_correlation:
     order: 2000
-  sample-relationships:
-    order: 1006
-  star_salmon_deseq2_pca:
-    order: 1005
-  star_salmon_deseq2_clustering:
-    order: 1004
-  salmon_deseq2_pca:
-    order: 1003
-  salmon_deseq2_clustering:
-    order: 1002
-  star_rsem_deseq2_pca:
-    order: 1001
-  star_rsem_deseq2_clustering:
-    order: 1000
   # Normalization and dimensionality reduction
   r_count_norm:
     order: 901
@@ -65,6 +53,20 @@ report_section_order:
 export_plots: true
 disable_version_detection: true
 sample_names_replace_exact: true
+skip_generalstats: false
+
+table_sample_merge:
+  "R1": "_trimmed_1"
+  "R2": "_trimmed_2"
+
+title: "RNASeq"
+subtitle: |
+  <a href="https://humantechnopole.it/en/facilities/national-facility-for-data-handling-analysis/">National Facility for Data Handling and Analysis</a> - Human Technopole 
+intro_text: |
+  This report includes the results of the RNASeq analysis pipeline developed by the National Facility for Data 
+  Handling and Analysis based on the nf-core/rnaseq pipeline, with some modifications to suit our needs.
+  This pipeline performs quality control, alignment, quantification, and differential expression analysis of bulk
+  transcriptomics data.
 
 # Run only these modules
 run_modules:
@@ -85,13 +87,59 @@ run_modules:
 
 module_order:
   - cutadapt
-  - fastp
+  - fastp:
+      anchor: "fastp"
+      name: "Initial QC and Trimming"
+      info: |
+        This section of the report shows the initial quality control, with the results
+        of the trimming and filtering steps performed by the fastp tool. 
+      extra: |
+        Fastp is a fast all-in-one preprocessing tool for FastQ files. It provides
+        fast and accurate adapter trimming, quality filtering, and read deduplication.
+        It also generates a variety of quality control metrics.
   - fastqc:
       anchor: "fastqc_trimmed"
-      name: "FastQC (trimmed)"
+      name: "Post Processing QC"
       info: "This section of the report shows FastQC results after adapter trimming."
       path_filters:
         - "*_trimmed*fastqc.zip"
+  - star:
+      anchor: "star"
+      name: "Alignment"
+      info: |
+        This section of the report shows the results of the STAR alignment step.
+        STAR is a fast and accurate aligner for RNA-Seq data.
+  - samtools:
+      anchor: "samtools"
+      name: "Post Alignment QC - samtools"
+      info: |
+        This section of the report shows the results of the post-alignment quality control
+        steps performed by samtools.
+  - picard:
+      anchor: "picard"
+      name: "Post Alignment QC - Picard"
+      info: |
+        This section of the report shows the results of the post-alignment quality control
+        steps performed by Picard.
+  - featurecounts:
+      anchor: "featurecounts"
+      name: "Quantification"
+      info: |
+        This section of the report shows the results of the featureCounts quantification step.
+        featureCounts is a read summarization tool for RNA-Seq data.
+  - r_count_norm:
+      anchor: "r_count_norm"
+      name: "Normalization"
+      info: |
+        This section of the report shows the results of the normalization step.
+        The normalization method used is TMM (Trimmed Mean of M-values).
+  - deseq2:
+      anchor: "deseq2"
+      name: "Differential Expression Analysis"
+      info: |
+        This section of the report shows the results of DESeq2. DESeq2 is a 
+        statistical package for analyzing count data and performing differential expression
+        analysis of transcriptomics data.
 
 # Don't show % Dups in the General Stats table (we have this from Picard)
 table_columns_visible:
@@ -129,8 +177,22 @@ sp:
   picard/markdups:
     fn: "*.MarkDuplicates.metrics.txt"
 
+  sample_correlation:
+    fn: '*_correlation_table.txt'
+
 # See https://github.com/ewels/MultiQC_TestData/blob/master/data/custom_content/with_config/table_headerconfig/multiqc_config.yaml
 custom_data:
+  sample_correlation:
+    id: 'sample_correlation'
+    section_name: 'Sample-to-sample Correlation'
+    description: |
+      Sample-to-sample Pearsons' correlation is calculated from the normalized counts.
+      The heatmap shows the correlation between samples, with red indicating
+      higher correlation and blue indicating lower correlation.
+    plot_type: 'heatmap'
+    pconfig:
+      id: 'correlation_heatmap'
+    sort_rows: true
   fail_trimmed_samples:
     section_name: "WARNING: Fail Trimming Check"
     description: "List of samples that failed the minimum trimmed reads threshold

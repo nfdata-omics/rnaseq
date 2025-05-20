@@ -59,6 +59,7 @@ workflow DIM_REDUCTION {
         ""
     )
     ch_versions = ch_versions.mix(SAMPLES_CORRELATION.out.versions)
+    ch_multiqc_files = ch_multiqc_files.mix(SAMPLES_CORRELATION.out.corr_matrix)
 
     //
     // COMPUTE PCA AND MDS COORDINATES
