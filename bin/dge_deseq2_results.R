@@ -3,6 +3,7 @@ options(warn=-1)
 suppressMessages(library("optparse"))
 suppressMessages(library("DESeq2"))
 suppressMessages(library("stringr"))
+suppressMessages(library("ggplot2"))
 
 ### Script to fit a DGE model using DESeq2
 option_list <- list(
@@ -98,6 +99,38 @@ if(sum(toptable[,6]==rownames(toptable)) == nrow(toptable)) {toptable = toptable
 toptable = cbind(rownames(toptable), toptable)
 colnames(toptable)[1] = "gene_name"
 write.table(toptable, paste("deseq2_toptable.",variable,"_",numNames,"_vs_",denomNames,suffix,".txt", sep=""), row.names=F, col.names=T, quote=F, sep="\t")
+
+
+
+# Histogram of nominal pvalues
+p = ggplot(toptable, aes(x=pvalue)) + geom_histogram(binwidth=0.05, color="blue", fill="skyblue1") + theme_classic()
+p = p + labs(title=paste("Nominal pvalue distribution - ", variable, ": ", numNames," vs ",denomNames, sep=""), x="nominal pvalue", y="frequency") + theme(title=element_text(size=13), axis.text=element_text(size=13))
+pdf(paste("pvalue_hist.",variable,"_",numNames,"_vs_",denomNames,suffix,".pdf",sep=""), width=8, height=8)
+print(p)
+dev.off()
+
+
+# Volcano plot
+colvol = rep("gray", nrow(toptable))
+colvol[toptable$padj<fdr & toptable$log2FoldChange>0] = "red2"
+colvol[toptable$padj<fdr & toptable$log2FoldChange<0] = "royalblue"
+logpv = -log10(toptable$pvalue)
+new_data = cbind(toptable[,c(3:5)], logpv, colvol)
+colnames(new_data)=c("logFC", "pvalue", "FDR", "logpv", "sign")
+subt = paste("Significance level was defined using the cutoff FDR<",fdr, sep="")
+new_data = new_data[!is.na(new_data$FDR),]
+
+pval_cutoff = tail(new_data$pvalue[new_data$FDR<fdr], 1) # the raw pvalue corresponding to the last significant FDR
+p = ggplot(new_data, aes(x=logFC, y=logpv, color=sign)) + geom_point(shape=19, show.legend=F)
+p = p + scale_color_manual(values = c("gray" = "gray", "red2" = "red2", "royalblue" = "royalblue"))
+p = p + geom_hline(yintercept=-log10(pval_cutoff), linetype="dashed", col=1) + geom_vline(xintercept=c(-1,1), linetype="dashed", col=1)
+p = p + labs(title=paste("Volcano plot - ",variable, ": ", numNames," vs ",denomNames, sep=""), subtitle=subt, x="log2FC", y="- log10 (pvalue)") + theme_classic()
+p = p + theme(title=element_text(size=20), axis.text=element_text(size=15))
+pdf(paste("volcano.",variable,"_",numNames,"_vs_",denomNames,suffix, ".pdf", sep=""), width=10, height=8)
+print(p)
+dev.off()
+
+
 
 
 

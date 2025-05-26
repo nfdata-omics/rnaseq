@@ -11,6 +11,8 @@ process DESEQ2_COMPARE {
     output:
     tuple val(meta), path("deseq2_toptable.*.txt"), emit: dge
     tuple val(meta), path("deseq2_summary.*.txt") , emit: summary
+    tuple val(meta), path("pvalue_hist.*.pdf")    , emit: hist_pval
+    tuple val(meta), path("volcano.*.pdf")        , emit: volcano
     path "versions.yml"                           , emit: versions
 
     when:
@@ -34,6 +36,8 @@ process DESEQ2_COMPARE {
     """
     touch deseq2_toptable.${meta.id}_${comparison}.txt
     touch deseq2_summary.${meta.id}_${comparison}.txt
+    touch pvalue_hist.${meta.id}_${comparison}.pdf
+    touch volcano.${meta.id}_${comparison}.pdf
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
