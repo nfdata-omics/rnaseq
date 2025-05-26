@@ -14,6 +14,9 @@ process PCA_AND_MDS {
     path "PCA_explained_variance.txt"  , emit: pca_var
     path "MDS_scores.txt"              , emit: mds
     path "exprs_data_to_hc_dendrog.txt", emit: red_matrix
+    path "PC1_vs_PC2_scoreplots.pdf"   , emit: PC12_pdf
+    path "PC3_vs_PC4_scoreplots.pdf"   , emit: PC34_pdf
+    path "MDS_scoreplots.pdf"          , emit: MDS_pdf
 
     when:
     task.ext.when == null || task.ext.when
@@ -38,6 +41,9 @@ process PCA_AND_MDS {
     touch PCA_explained_variance.txt
     touch MDS_scores.txt
     touch exprs_data_to_hc_dendrog.txt
+    touch PC1_vs_PC2_scoreplots.pdf
+    touch PC3_vs_PC4_scoreplots.pdf
+    touch MDS_scoreplots.pdf
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
