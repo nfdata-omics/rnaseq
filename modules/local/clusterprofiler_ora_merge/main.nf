@@ -12,6 +12,7 @@ process CLUSTERPROFILER_ORA_MERGE {
     output:
     tuple val(meta), path("ora_CP.*.xlsx") , optional: true, emit: CP_merged
     tuple val(meta), path("ora_CP.*.txt")  , optional: true, emit: CP_topn
+    tuple val(meta), path("ora_CP.*.pdf")  , optional: true, emit: CP_topn_dotplot
     path "versions.yml"                    , emit: versions
 
     when:
@@ -33,6 +34,7 @@ process CLUSTERPROFILER_ORA_MERGE {
     """
     touch ora_CP.${meta.id}_${meta.cf}.TOP_N.txt
     touch ora_CP.${meta.id}_${meta.cf}.xlsx
+    touch ora_CP.${meta.id}_${meta.cf}.TOP_N.pdf
 
     echo "${task.process}": > versions.yml
     ora_clusterProfiler_merge.R --version >> versions.yml
