@@ -56,19 +56,23 @@ for(f in files){
   excel_list[[set_name]] = dat
   
   # Extracting and merging significant pathways
-  dat$collection = set_name
-  sign_path = rbind(sign_path, dat[dat$qvalue<fdr,])
+  if(!"empty"%in%colnames(dat)){
+    dat$collection = set_name
+    sign_path = rbind(sign_path, dat[dat$qvalue<fdr,])
+  }
 }
 
 
 # Extracting the top N most significantly enriched pathways
-sign_path = sign_path[order(sign_path$qvalue),]
-top_n = sign_path[1:min(num, nrow(sign_path)),]
-# Reshaping top_n in a convenient format for multiQC embedding
-top_n$minus.log.padj = -log10(top_n$qvalue)
-top_n = top_n[,c("ID","NES","pvalue","p.adjust","qvalue","minus.log.padj","collection")]
-colnames(top_n) = c("Pathway","NES","pvalue","p.adjust","qvalue","minus.log.padj","collection")
-write.table(top_n, paste(outname, "TOP_", num, ".txt", sep=""), col.names=T, row.names=F, quote=F, sep="\t")
+if(length(sign_path)>0){
+	sign_path = sign_path[order(sign_path$qvalue),]
+	top_n = sign_path[1:min(num, nrow(sign_path)),]
+	# Reshaping top_n in a convenient format for multiQC embedding
+	top_n$minus.log.padj = -log10(top_n$qvalue)
+	top_n = top_n[,c("ID","NES","pvalue","p.adjust","qvalue","minus.log.padj","collection")]
+	colnames(top_n) = c("Pathway","NES","pvalue","p.adjust","qvalue","minus.log.padj","collection")
+	write.table(top_n, paste(outname, "TOP_", num, ".txt", sep=""), col.names=T, row.names=F, quote=F, sep="\t")
+}
 
 
 # Saving the merged excel file, with different collections on different sheets
