@@ -67,7 +67,7 @@ mingenes <- opt$min
 maxgenes <- opt$max
 
 # Importing dge toptable
-toptable <- read.delim(dge_toptable, h=T, row.names=1, check.names=F)
+toptable <- read.delim(dge_toptable, skip=1, h=T, row.names=1, check.names=F)
 # Defining output name
 outname <- gsub(".txt", "", gsub("deseq2_toptable", "gsea", dge_toptable))
 collection <- gsub(".gmt", "", gmt_file)

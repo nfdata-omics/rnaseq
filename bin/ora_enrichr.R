@@ -62,7 +62,7 @@ enrich.databases <- c("GO_Biological_Process_2023",
 
 
 # Importing dge toptable
-toptable = read.delim(dge_toptable, h=T, row.names=1, check.names=F)
+toptable = read.delim(dge_toptable, skip=1, h=T, row.names=1, check.names=F)
 # Defining output name
 outname = gsub(".txt", "", gsub("deseq2_toptable", "enrichr", dge_toptable))
 summary_name = gsub("deseq2_toptable", "enrichr_summary", dge_toptable)
