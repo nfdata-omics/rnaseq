@@ -25,6 +25,9 @@ process DESEQ2_COMPARE {
     args = task.ext.args ?: ''
     """
     dge_deseq2_results.R $args --FDR $fdr_threshold $model "$comparison"
+    cat <(echo -e '#DGE\t${meta.id}\t${meta.cf}') deseq2_toptable.*.txt > out_tmp
+    j=\$(basename deseq2_toptable.*.txt)
+    mv out_tmp "\$j"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
