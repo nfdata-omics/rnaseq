@@ -22,6 +22,9 @@ process GSEA_MERGE {
     args = task.ext.args ?: ''
     """
     gsea_merge.R $args $list_of_tables
+    cat <(echo -e '#GSEA\t${meta.id}\t${meta.cf}') gsea*TOP*.txt > out_tmp
+    j=\$(basename gsea*TOP*.txt)
+    mv out_tmp "\$j"
 
     echo "${task.process}": > versions.yml
     gsea_merge.R --version >> versions.yml
