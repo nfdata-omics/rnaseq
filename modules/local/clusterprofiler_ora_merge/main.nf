@@ -25,6 +25,11 @@ process CLUSTERPROFILER_ORA_MERGE {
     args = task.ext.args ?: ''
     """
     ora_clusterProfiler_merge.R $args --FDR $fdr_pathways --num $n_pathways $list_of_tables
+    for i in ora_CP.*.txt; do \\
+      [ -f "\$i" ] || continue; \\
+      cat <(echo -e '#Over-representation\t${meta.id}\t${meta.cf}') \$i > out_tmp; \\
+      mv out_tmp "\$i"; \\
+    done
 
     echo "${task.process}": > versions.yml
     ora_clusterProfiler_merge.R --version >> versions.yml
