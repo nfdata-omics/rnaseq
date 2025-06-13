@@ -131,11 +131,11 @@ module_order:
       anchor: "r_count_norm"
       name: "Expression values and normalization"
       info: |
-        Expression values are provided in tables, where each column represents a sample and each row corresponds to a gene. 
-        The raw counts table contains gene expression quantification, as calculated by FeatureCounts, for all the annotated genes. Raw count values are non-negative integers. 
-        Count per million reads (CPM) values are raw counts normalized to account for the different library sizes of different samples, and multiplied by a scale factor of 1 million. Cpm values are non-negative numbers that sum to 1.000.000 for each sample, allowing direct comparison of the same gene across different samples. 
-        Reads per kilobase per million mapped reads (RPKM) values are raw counts normalized using the trimmed mean of M-values (TMM) method to adjust for differences in sequencing depth and library composition (Robinson, MD, and Oshlack, A (2010). A scaling normalization method for differential expression analysis of RNA-seq data. Genome Biology 11, R25). 
-        Rpkm values are also adjusted for gene length, enabling direct comparison of different genes within the same sample. RPKM values were log2-transformed to enhance graphical representation and, as a result, can include both positive and negative numbers. 
+        Expression values are provided in tables, where each column represents a sample and each row corresponds to a gene.<br>
+        The raw counts table contains gene expression quantification, as calculated by FeatureCounts, for all the annotated genes. Raw count values are non-negative integers.<br>
+        Count per million reads (CPM) values are raw counts normalized to account for the different library sizes of different samples, and multiplied by a scale factor of 1 million. Cpm values are non-negative numbers that sum to 1.000.000 for each sample, allowing direct comparison of the same gene across different samples.<br>
+        Reads per kilobase per million mapped reads (RPKM) values are raw counts normalized using the trimmed mean of M-values (TMM) method to adjust for differences in sequencing depth and library composition (Robinson, MD, and Oshlack, A (2010). A scaling normalization method for differential expression analysis of RNA-seq data. Genome Biology 11, R25).
+        Rpkm values are also adjusted for gene length, enabling direct comparison of different genes within the same sample. RPKM values were log2-transformed to enhance graphical representation and, as a result, can include both positive and negative numbers.<br>
         Expressed genes were defined as those genes showing at least 1 CPM in a number of samples equal to the size of the smallest group being compared.
   - dim_reduction:
       anchor: "dim_reduction"
@@ -143,30 +143,32 @@ module_order:
       info: |
         Principal Component Analysis (PCA) is a dimensionality reduction algorithm used to summarize the variability structure of an entire dataset into a few latent variables, called principal components. 
         Each component is defined as a linear combination of the original features (for example, genes) and is orthogonal (and thus independent) to all previous components.
-        Components are defined as eigenvector of the covariance matrix of the data, with the first component explaining the largest percentage of variance and subsequent components accounting for progressively smaller proportions of variance. 
+        Components are defined as eigenvector of the covariance matrix of the data, with the first component explaining the largest percentage of variance and subsequent components accounting for progressively smaller proportions of variance.<br>
         Multidimensional Scaling (MDS) is also a dimensionality reduction algorithm that seeks to preserve the pairwise distances between samples when projecting data into a lower-dimensional space. 
         Unlike PCA, which identifies linear combinations of features to maximize variance, MDS is more flexible and works directly with a distance matrix, making it suitable for data where the relationships are non-linear or not well captured by variance. 
-        If the relationships between the variables in the dataset are primarily linear and the variance structure is well-defined, results from the two algorithms are likely to converge. 
-        In a PCA/MDS scatterplot, each dot represents a sample; dots that are closer together indicate more similar samples, while distant dots suggest highly divergent samples or potential outliers. The coordinates of each dot on the plot are calculated by the algorithms in an unsupervised manner. However, dots can be color-coded based on sample characteristics, enabling the identification of whether clusters of samples are associated with specific experimental or technical variables. 
-        Both analyses were performed on normalized expression values of the top NUM most variable genes among the expressed ones. The data were preprocessed by centering and scaling to achieve a zero mean and unit variance. 
+        If the relationships between the variables in the dataset are primarily linear and the variance structure is well-defined, results from the two algorithms are likely to converge.<br>
+        In a PCA/MDS scatterplot, each dot represents a sample; dots that are closer together indicate more similar samples, while distant dots suggest highly divergent samples or potential outliers. 
+        The coordinates of each dot on the plot are calculated by the algorithms in an unsupervised manner. 
+        However, dots can be color-coded based on sample characteristics chosen by the users, enabling the identification of whether clusters of samples are associated with specific experimental or technical variables.<br>
+        Both analyses were performed on normalized expression values of the top 5000 most variable genes among the expressed ones. The data were preprocessed by centering and scaling to achieve a zero mean and unit variance. 
         The following interactive plots display the distribution of samples in the reduced component spaces and can be used to highlight different sample characteristics as reported in the metadata.
   - deseq2:
       anchor: "deseq2"
       name: "Differential Expression Analysis"
       info: |
         Differential Gene Expression (DGE) analysis was performed using the R package DESeq2, with no assumption about prior distribution (option betaPrior=FALSE) and applying independent filtering to the result. 
-        Independent filtering is a strategy that excludes genes with very low average expression from the calculation of adjusted p-values. By performing the p-value adjustment on a reduced set of genes, this approach increases the overall statistical power.
+        Independent filtering is a strategy that excludes genes with very low average expression from the calculation of adjusted p-values. By performing the p-value adjustment on a reduced set of genes, this approach increases the overall statistical power.<br>
         [Description of the fitted models and the performed comparisons?]
-        Only the previously identified expressed genes were tested. Significance was defined setting a threshold of FDR < FDR_CUTOFF.
-        For each performed comparison, a table with complete results is produced. In each table, for each gene is reported:\n
-          	• Base mean (the average normalized expression calculated across all the considered samples)\n
-            • log2 Fold Change\n
-            • raw p-value\n
-            • p-value adjusted with the Benjamini-Hochberg correction (FDR value). Genes with NA values were discarded by the independent filtering procedure and should not be considered.\n
-            • significance indexes according to each considered FDR cutoff ("up" for significantly up-regulated genes, "down" for significantly down-regulated genes and "not_sign" for all the not significant genes)\n
-            • Gene information and annotations when available (e.g., Ensemble gene ID, genomic location of the gene etc.)\n
-        For each performed comparison, an interactive volcano plot and an histogram showing nominal pvalues distribution are also produced.
-        The volcano plot displays the log2 fold change and -log10 p-value for all tested genes. Blue and red dots represent downregulated and upregulated genes, respectively, while gray dots correspond to non-significant genes.
+        Only the previously identified expressed genes were tested. Significance was defined setting a threshold of FDR < FDR_CUTOFF.<br>
+        For each performed comparison, a table with complete results is produced. In each table, for each gene is reported:<br>
+            • Base mean (the average normalized expression calculated across all the considered samples)<br>
+            • log2 Fold Change<br>
+            • raw p-value<br>
+            • p-value adjusted with the Benjamini-Hochberg correction (FDR value). Genes with NA values were discarded by the independent filtering procedure and should not be considered.<br>
+            • significance indexes according to each considered FDR cutoff ("up" for significantly up-regulated genes, "down" for significantly down-regulated genes and "not_sign" for all the not significant genes)<br>
+            • Gene information and annotations when available (e.g., Ensemble gene ID, genomic location of the gene etc.)<br>
+        For each performed comparison, an interactive volcano plot and an histogram showing nominal pvalues distribution are also produced.<br>
+        The volcano plot displays the log2 fold change and -log10 p-value for all tested genes. Blue and red dots represent downregulated and upregulated genes, respectively, while gray dots correspond to non-significant genes.<br>
         The histogram of nominal pvalue distributions provides information about the overall significance of the considered comparison. 
         If the null hypothesis (i.e. no difference among groups) holds for each tested gene, p-value distribution would be uniform between 0 and 1. At the opposite, a large number of small p-values confirms the significance of the considered comparison.
 
