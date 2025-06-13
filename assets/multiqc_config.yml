@@ -158,13 +158,13 @@ module_order:
         Independent filtering is a strategy that excludes genes with very low average expression from the calculation of adjusted p-values. By performing the p-value adjustment on a reduced set of genes, this approach increases the overall statistical power.
         [Description of the fitted models and the performed comparisons?]
         Only the previously identified expressed genes were tested. Significance was defined setting a threshold of FDR < FDR_CUTOFF.
-        For each performed comparison, a table with complete results is produced. In each table, for each gene is reported:
-          	• Base mean (the average normalized expression calculated across all the considered samples)
-            • log2 Fold Change
-            • raw p-value
-            • p-value adjusted with the Benjamini-Hochberg correction (FDR value). Genes with NA values were discarded by the independent filtering procedure and should not be considered.
-            • significance indexes according to each considered FDR cutoff ("up" for significantly up-regulated genes, "down" for significantly down-regulated genes and "not_sign" for all the not significant genes)
-            • Gene information and annotations when available (e.g., Ensemble gene ID, genomic location of the gene etc.)
+        For each performed comparison, a table with complete results is produced. In each table, for each gene is reported:\n
+          	• Base mean (the average normalized expression calculated across all the considered samples)\n
+            • log2 Fold Change\n
+            • raw p-value\n
+            • p-value adjusted with the Benjamini-Hochberg correction (FDR value). Genes with NA values were discarded by the independent filtering procedure and should not be considered.\n
+            • significance indexes according to each considered FDR cutoff ("up" for significantly up-regulated genes, "down" for significantly down-regulated genes and "not_sign" for all the not significant genes)\n
+            • Gene information and annotations when available (e.g., Ensemble gene ID, genomic location of the gene etc.)\n
         For each performed comparison, an interactive volcano plot and an histogram showing nominal pvalues distribution are also produced.
         The volcano plot displays the log2 fold change and -log10 p-value for all tested genes. Blue and red dots represent downregulated and upregulated genes, respectively, while gray dots correspond to non-significant genes.
         The histogram of nominal pvalue distributions provides information about the overall significance of the considered comparison. 
