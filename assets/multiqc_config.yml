@@ -82,6 +82,7 @@ run_modules:
   - deseq2
   - dim_reduction
   - r_count_norm
+  - enrichr
 
 # Order of modules
 
@@ -211,6 +212,13 @@ sp:
 
   sample_correlation:
     fn: '*_correlation_table.txt'
+
+  enrichr/all:
+    fn: "*.TOP_25.all.txt"
+  enrichr/down:
+    fn: "*.TOP_25.down.txt"
+  enrichr/up:
+    fn: "*.TOP_25.up.txt"
 
 # See https://github.com/ewels/MultiQC_TestData/blob/master/data/custom_content/with_config/table_headerconfig/multiqc_config.yaml
 custom_data:

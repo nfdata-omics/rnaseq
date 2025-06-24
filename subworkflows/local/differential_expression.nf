@@ -197,6 +197,7 @@ workflow DIFFERENTIAL_EXPRESSION {
                 n_pathways
             )
             ch_versions = ch_versions.mix(CLUSTERPROFILER_ORA.out.versions)
+            ch_multiqc_files = ch_multiqc_files.mix(CLUSTERPROFILER_ORA_MERGE.out.CP_topn.collect{it[1]})
 
         }
     }
