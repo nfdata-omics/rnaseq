@@ -44,7 +44,7 @@ gene_metadata = df.columns[:gene_column_nr].to_list()
 print(f"Count annotation columns: {gene_metadata}\\nThese columns will be maintained in all the subset matrix files\\n")
 
 # read file with lists of samples to extract to subset the count matrix
-sample_lists = pd.read_csv(split_file, index_col=0, header=None, engine="python").T
+sample_lists = pd.read_csv(split_file, index_col=0, header=None).T
 
 # loop over sample lists and subset matrix
 for c in sample_lists.columns:
