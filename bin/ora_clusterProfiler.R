@@ -77,25 +77,18 @@ if(length(my_genes)>=5){
     print("The list of differentially expressed genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes. 
             Consider to apply more stringent cutoffs on FDR and/or log2FC")
   }
-  #my_enrich = enricher(gene=my_genes, universe=background_genes, maxGSSize=1000, TERM2GENE=my_gmt)
-  # BgRatio = M/N, with M = #genes in the selected pathway that are also in the background; with N = #unique genes in all the gmt (all pathways) that are also in the background
-  # GeneRatio = M/N, with M = #my input genes that are also in the selected pathway; with N = #my input genes that are also in all the gmt (all pathways)
   my_enrich = tryCatch({ 
-    enricher(gene=my_genes, universe=background_genes, maxGSSize=1000, TERM2GENE=my_gmt)}, 
-    error = function(e) {message("Enrichment failed: ", e$message)NULL
+    enricher(gene=my_genes, universe=background_genes, maxGSSize=1000, TERM2GENE=my_gmt)},
+    # BgRatio = M/N, with M = #genes in the selected pathway that are also in the background; with N = #unique genes in all the gmt (all pathways) that are also in the background
+    # GeneRatio = M/N, with M = #my input genes that are also in the selected pathway; with N = #my input genes that are also in all the gmt (all pathways)
+    error = function(e) {message(e$message)
   })
-  if (!is.null(my_enrich) && inherits(my_enrich, "enrichResult")) {
+  if (!is.null(my_enrich)) {
     write.table(x=my_enrich@result, file=paste(outname, ".", collection, ".all.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
   } else {
     no_enrichment = data.frame(empty="No enrichment was found.")
     write.table(x=no_enrichment, file=paste(outname, ".", collection, ".all.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
   }
-  #if(!is.null(my_enrich)){
-  #  write.table(x=my_enrich@result, file=paste(outname, ".", collection, ".all.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
-  #} else {
-  #  no_enrichment = data.frame(empty="No enrichment was found.")
-  #  write.table(x=no_enrichment, file=paste(outname, ".", collection, ".all.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
-  #}
 } else {
   no_enrichment = data.frame(empty=paste("Enrichment analysis was not performed. Less than 5 significant genes were retrieved using the cutoff FDR<", fdr, ", abs_log2FC>", logfc, ".", sep=""))
   write.table(x=no_enrichment, file=paste(outname, ".", collection, ".all.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
@@ -107,7 +100,10 @@ if(length(my_genes_up)>=5){
     print("The list of up-regulated genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes. 
             Consider to apply more stringent cutoffs on FDR and/or log2FC")
   }
-  my_enrich_up = enricher(gene=my_genes_up, universe=background_genes, maxGSSize=1000, TERM2GENE=my_gmt)
+  my_enrich_up = tryCatch({ 
+    enricher(gene=my_genes_up, universe=background_genes, maxGSSize=1000, TERM2GENE=my_gmt)},
+    error = function(e) {message(e$message)
+  })
   if(!is.null(my_enrich_up)){
     write.table(x=my_enrich_up@result, file=paste(outname, ".", collection, ".up.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
   } else {
@@ -125,7 +121,10 @@ if(length(my_genes_down)>=5){
     print("The list of down-regulated genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes. 
             Consider to apply more stringent cutoffs on FDR and/or log2FC")
   }
-  my_enrich_down = enricher(gene=my_genes_down, universe=background_genes, maxGSSize=1000, TERM2GENE=my_gmt)
+  my_enrich_down = tryCatch({
+    enricher(gene=my_genes_down, universe=background_genes, maxGSSize=1000, TERM2GENE=my_gmt)},
+    error = function(e) {message(e$message)
+  })  
   if(!is.null(my_enrich_down)){
     write.table(x=my_enrich_down@result, file=paste(outname, ".", collection, ".down.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
   } else {
