@@ -72,8 +72,8 @@ for(i in 1:ncol(meta)){
 }
 
 # Matching names
-meta = meta[rownames(meta)%in%colnames(counts)[(col_num):ncol(counts)],]
-meta = meta[match(colnames(counts)[(col_num):ncol(counts)], rownames(meta)),]
+meta = meta[rownames(meta)%in%colnames(counts)[(col_num):ncol(counts)], , drop=FALSE]
+meta = meta[match(colnames(counts)[(col_num):ncol(counts)], rownames(meta)), , drop=FALSE]
 
 # Creating the summarized exp object
 if(col_num==1){
