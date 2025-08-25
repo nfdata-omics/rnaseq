@@ -24,7 +24,7 @@ def tab_delimited(file: str) -> float:
     """Check if file is tab-delimited and return median number of tabs."""
     with open(file, "r") as f:
         data = f.read(102400)
-        return statistics.median(line.count("\t") for line in data.split("\n"))
+        return statistics.median(line.count("\t") for line in data.split("\n") if not line.startswith("#"))
 
 
 def filter_gtf(fasta: str, gtf_in: str, filtered_gtf_out: str, skip_transcript_id_check: bool) -> None:
