@@ -1,7 +1,7 @@
 process MULTIQC {
     label 'process_single'
 
-    container "docker.io/nfdata/omics_pipeline_reporter:v1.26.p4"
+    container "docker.io/nfdata/omics_pipeline_reporter:v1.26.p5"
 
     input:
     path  multiqc_files, stageAs: "?/*"
