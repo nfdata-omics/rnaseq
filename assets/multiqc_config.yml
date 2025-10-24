@@ -40,7 +40,7 @@ report_section_order:
   dim_reduction:
     order: 900
   # Differential expression analysis
-  deseq2:
+  dea:
     order: 800
   # Summaries
   "nfdata-omics-rnaseq-methods-description":
@@ -79,7 +79,7 @@ run_modules:
   - featurecounts
   - samtools
   - picard
-  - deseq2
+  - dea
   - dim_reduction
   - r_count_norm
   - enrichr
@@ -153,8 +153,8 @@ module_order:
         However, dots can be color-coded based on sample characteristics chosen by the users, enabling the identification of whether clusters of samples are associated with specific experimental or technical variables.<br>
         Both analyses were performed on normalized expression values of the top 5000 most variable genes among the expressed ones. The data were preprocessed by centering and scaling to achieve a zero mean and unit variance. 
         The following interactive plots display the distribution of samples in the reduced component spaces and can be used to highlight different sample characteristics as reported in the metadata.
-  - deseq2:
-      anchor: "deseq2"
+  - dea:
+      anchor: "dea"
       name: "Differential Expression Analysis"
       info: |
         Differential Gene Expression (DGE) analysis was performed using the R package DESeq2, with no assumption about prior distribution (option betaPrior=FALSE) and applying independent filtering to the result. 
