@@ -29,6 +29,10 @@ process DESEQ2_COMPARE {
     j=\$(basename deseq2_toptable.*.txt)
     mv out_tmp "\$j"
 
+    cat <(echo -e '#DGE\t${meta.id}\t${meta.cf}') deseq2_summary.*.txt > out_tmp2
+    z=\$(basename deseq2_summary.*.txt)
+    mv out_tmp2 "\$z"
+
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
     END_VERSIONS
