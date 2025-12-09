@@ -72,6 +72,9 @@ if(length(sign_path)>0){
 	top_n = top_n[,c("ID","NES","pvalue","p.adjust","qvalue","minus.log.padj","collection")]
 	colnames(top_n) = c("Pathway","NES","pvalue","p.adjust","qvalue","minus.log.padj","collection")
 	write.table(top_n, paste(outname, "TOP_", num, ".txt", sep=""), col.names=T, row.names=F, quote=F, sep="\t")
+} else {
+	no_enrichment = data.frame(empty="No significant enrichment was found.")
+	write.table(x=no_enrichment, file=paste(outname, "TOP_", num, ".txt", sep=""), col.names=T, row.names=F, quote=F, sep="\t")
 }
 
 
