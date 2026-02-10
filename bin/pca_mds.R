@@ -4,6 +4,7 @@ suppressMessages(library("optparse"))
 suppressMessages(library("limma"))
 suppressMessages(library("edgeR"))
 suppressMessages(library("SummarizedExperiment"))
+suppressMessages(library("ggplot2"))
 
 ### Script to perform PCA and MDS
 
@@ -64,7 +65,7 @@ isexpr = rowSums(cpm>1) >= num_samples
 # Filtering not-expressed genes
 data = data[isexpr,]
 
-# Considering the top t most variable genes
+# Considering the top most variable genes
 var = apply(data, 1, var)
 names(var) = rownames(data)
 sorted_var = sort(var, decreasing=T)
@@ -91,6 +92,33 @@ var = round(matrix(((pca$sdev^2)/(sum(pca$sdev^2))), ncol=1)*100,1)
 var_df = data.frame(PC=paste("PC",seq(1:length(var)), sep=""), var=var)
 write.table(var_df, paste("PCA_explained_variance",suffix,".txt",sep=""), quote=F, row.names=F, col.names=T, sep="\t")
 
+# Static PCA pdf scoreplots
+xlab1 = paste("PC1 (",var[1],"%)", sep="")
+ylab1 = paste("PC2 (",var[2],"%)", sep="")
+xlab2 = paste("PC3 (",var[3],"%)", sep="")
+ylab2 = paste("PC4 (",var[4],"%)", sep="")
+
+pdf("PC1_vs_PC2_scoreplots.pdf")
+for(i in (nrow(score)+2):ncol(score)){
+  p = ggplot(score, aes(x=score[,2], y=score[,3], color=score[,i])) + geom_point(size=3) + theme_light()
+  p = p + labs(x=xlab1, y=ylab1, color=colnames(score)[i], title=paste("PC1 vs PC2 scoreplot",sep=""))
+  p = p + geom_text(aes(label=rownames(score)), size=4, vjust=-1, show.legend=FALSE)
+  p = p + theme(axis.title=element_text(size=15), axis.text=element_text(size=10), title=element_text(size=20), legend.title=element_text(size=15), legend.text=element_text(size=15))
+  print(p)
+}
+dev.off()
+
+pdf("PC3_vs_PC4_scoreplots.pdf")
+for(i in (nrow(score)+2):ncol(score)){
+  p = ggplot(score, aes(x=score[,4], y=score[,5], color=score[,i])) + geom_point(size=3) + theme_light()
+  p = p + labs(x=xlab2, y=ylab2, color=colnames(score)[i], title=paste("PC3 vs PC4 scoreplot",sep=""))
+  p = p + geom_text(aes(label=rownames(score)), size=4, vjust=-1, show.legend=FALSE)
+  p = p + theme(axis.title=element_text(size=15), axis.text=element_text(size=10), title=element_text(size=20), legend.title=element_text(size=15), legend.text=element_text(size=15))
+  print(p)
+}
+dev.off()
+
+
 
 
 # MDS
@@ -102,6 +130,18 @@ mds_score = data.frame(samples=rownames(mds@.Data[[5]]), x=mds$x, y=mds$y)
 meta = meta[match(mds_score$samples, rownames(meta)),] # probably useless but one more it's better than one less
 mds_score = cbind(mds_score, meta)
 write.table(mds_score, paste("MDS_scores",suffix,".txt",sep=""), quote=F, row.names=F, col.names=T, sep="\t")
+
+# Static MDS pdf scoreplots
+pdf("MDS_scoreplots.pdf")
+for(i in 4:ncol(mds_score)){
+  p = ggplot(mds_score, aes(x=x, y=y, color=mds_score[,i])) + geom_point(size=3) + theme_light()
+  p = p + labs(color=colnames(mds_score)[i], title="MDS scoreplot")
+  p = p + geom_text(aes(label=rownames(mds_score)), size=4, vjust=-1, show.legend=FALSE)
+  p = p + theme(axis.title=element_text(size=15), axis.text=element_text(size=10), title=element_text(size=20), legend.title=element_text(size=15), legend.text=element_text(size=15))
+  print(p)
+}
+dev.off()
+
 
 
 

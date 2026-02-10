@@ -9,6 +9,7 @@ process GSEA_MERGE {
 
     output:
     tuple val(meta), path("gsea*.xlsx")  , emit: gsea_merged
+    tuple val(meta), path("gsea*.txt")   , emit: gsea_topn
     path "versions.yml"                  , emit: versions
 
     when:
@@ -21,6 +22,9 @@ process GSEA_MERGE {
     args = task.ext.args ?: ''
     """
     gsea_merge.R $args $list_of_tables
+    cat <(echo -e '#GSEA\t${meta.id}\t${meta.cf}') gsea*TOP*.txt > out_tmp
+    j=\$(basename gsea*TOP*.txt)
+    mv out_tmp "\$j"
 
     echo "${task.process}": > versions.yml
     gsea_merge.R --version >> versions.yml
@@ -29,6 +33,7 @@ process GSEA_MERGE {
     stub:
     """
     touch gsea.${meta.id}_${meta.cf}.xlsx
+    touch gsea.${meta.id}_${meta.cf}.TOP_N.txt
 
     echo "${task.process}": > versions.yml
     gsea_merge.R --version >> versions.yml

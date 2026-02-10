@@ -29,6 +29,7 @@ workflow DIFFERENTIAL_EXPRESSION {
     main:
 
     ch_versions = Channel.empty()
+    ch_multiqc_files = Channel.empty()
 
     //
     // R-OBJECT CONSTRUCTION
@@ -79,6 +80,7 @@ workflow DIFFERENTIAL_EXPRESSION {
                 fdr_threshold
             )
             ch_versions = ch_versions.mix(DESEQ2_COMPARE.out.versions)
+            ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_COMPARE.out.dge.collect{it[1]})
 
             DESEQ2_COMPARE.out.dge
                 .combine(genesets_ch)
@@ -94,6 +96,7 @@ workflow DIFFERENTIAL_EXPRESSION {
             SUMMARY_TABLE(
                 ch_dge_summary,
             )
+            ch_multiqc_files = ch_multiqc_files.mix(SUMMARY_TABLE.out.joint_summary)
 
             //
             // FUNCTIONAL ANALYSIS: ENRICHR
@@ -194,10 +197,12 @@ workflow DIFFERENTIAL_EXPRESSION {
                 n_pathways
             )
             ch_versions = ch_versions.mix(CLUSTERPROFILER_ORA.out.versions)
+            ch_multiqc_files = ch_multiqc_files.mix(CLUSTERPROFILER_ORA_MERGE.out.CP_topn.collect{it[1]})
 
         }
     }
 
     emit:
     versions    = ch_versions
+    multiqc_files   = ch_multiqc_files
 }

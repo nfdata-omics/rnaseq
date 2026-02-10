@@ -3,6 +3,8 @@ options(warn=-1)
 suppressMessages(library("optparse"))
 suppressMessages(library("stringr"))
 suppressMessages(library("openxlsx"))
+suppressMessages(library("ggplot2"))
+suppressMessages(library("viridis"))
 
 ### Script to merge results from clusterProfiler over-representation analysis and to extract top results
 option_list <- list(
@@ -81,6 +83,28 @@ if(!is.null(nrow(all_sign))){
   top_n = top_n[,c(1,5,8,9,14,13)]
   colnames(top_n) = c("Pathway", "gene.ratio", "p.value", "p.adjust", "minus.log.padj", "collection")
   write.table(top_n, paste(outname, "TOP_", num, suffix, sep=""), col.names=T, row.names=F, quote=F, sep="\t")
+  
+  # Corresponding dotplot
+  top_n$Pathway.num = as.factor(dim(top_n)[1]:1)
+  dp = ggplot(top_n, aes(Pathway.num, minus.log.padj, color=minus.log.padj)) +
+    geom_point(aes(size=gene.ratio)) + scale_size_continuous(range=c(2,8), name="Gene ratio") +
+    scale_color_continuous(type="viridis") + coord_flip() +
+    scale_x_discrete(breaks=top_n$Pathway.num, labels=stringr::str_wrap(top_n$Pathway, width=85), position="top") +
+    theme(plot.title = element_text(color="black", size=18, face="bold.italic"),
+          plot.subtitle = element_text(color="black", size=16, face="italic"),
+          axis.text.x = element_text(angle=90, color='black', size=14, hjust=1, family="mono"),
+          axis.title.x = element_text(face="bold", color="black", size=14),
+          axis.text.y = element_text(angle=0, color='black', size=14, family="mono"),
+          axis.title.y = element_text(face="bold", color="black", size=14),
+          legend.text = element_text(color="black", size=12),
+          legend.title = element_text(face="bold", color="black", size=14),
+          panel.background = element_rect(fill="white",colour="black", linewidth=1, linetype="solid")) +
+    labs(title = paste("Top ", num, " most significant pathways", sep=""), x="", y="-Log10(p.adj.value)")
+  
+  # Saving plot
+  pdf(paste(outname, "TOP_", num, substr(suffix, 1, nchar(suffix)-3), "pdf", sep=""), width=14, height=8)
+  print(dp)
+  dev.off()
 }
 
 

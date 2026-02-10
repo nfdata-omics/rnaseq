@@ -12,6 +12,7 @@ process CLUSTERPROFILER_ORA_MERGE {
     output:
     tuple val(meta), path("ora_CP.*.xlsx") , optional: true, emit: CP_merged
     tuple val(meta), path("ora_CP.*.txt")  , optional: true, emit: CP_topn
+    tuple val(meta), path("ora_CP.*.pdf")  , optional: true, emit: CP_topn_dotplot
     path "versions.yml"                    , emit: versions
 
     when:
@@ -24,6 +25,11 @@ process CLUSTERPROFILER_ORA_MERGE {
     args = task.ext.args ?: ''
     """
     ora_clusterProfiler_merge.R $args --FDR $fdr_pathways --num $n_pathways $list_of_tables
+    for i in ora_CP.*.txt; do \\
+      [ -f "\$i" ] || continue; \\
+      cat <(echo -e '#Over-representation\t${meta.id}\t${meta.cf}') \$i > out_tmp; \\
+      mv out_tmp "\$i"; \\
+    done
 
     echo "${task.process}": > versions.yml
     ora_clusterProfiler_merge.R --version >> versions.yml
@@ -33,6 +39,7 @@ process CLUSTERPROFILER_ORA_MERGE {
     """
     touch ora_CP.${meta.id}_${meta.cf}.TOP_N.txt
     touch ora_CP.${meta.id}_${meta.cf}.xlsx
+    touch ora_CP.${meta.id}_${meta.cf}.TOP_N.pdf
 
     echo "${task.process}": > versions.yml
     ora_clusterProfiler_merge.R --version >> versions.yml

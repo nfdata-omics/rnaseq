@@ -26,10 +26,10 @@ process SUMMARY_TABLE {
     echo -e 'Comparison\tUpreg\tUpreg_percent\tDownreg\tDownreg_percent' > "dea_${meta.id}_summary.txt"
 
     for idx in "\${!names[@]}"; do
-        comparison=\$(echo "\${names[\$idx]}" | sed -E 's/^([^:]+):([^:]+):([^:]+)\$/\\1_\\2_vs_\\3/')
+        comparison=\$(echo "\${names[\$idx]}" | sed -E 's/\\//_/g; s/^([^:]+):([^:]+):([^:]+)\$/\\1_\\2_vs_\\3/')
         upreg=\$(cat \${files[\$idx]} | grep up | sed 's/.*: //' | tr -d ' ' | tr ',' '\t')
-        downref=\$(cat \${files[\$idx]} | grep down | sed 's/.*: //' | tr -d ' ' | tr ',' '\t')
-        echo -e "\${comparison}\t\${upreg}\t\${downref}" >> "dea_${meta.id}_summary.txt"
+        downreg=\$(cat \${files[\$idx]} | grep down | sed 's/.*: //' | tr -d ' ' | tr ',' '\t')
+        echo -e "\${comparison}\t\${upreg}\t\${downreg}" >> "dea_${meta.id}_summary.txt"
     done
 
     cat <<-END_VERSIONS > versions.yml

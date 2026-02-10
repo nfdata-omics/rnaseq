@@ -21,7 +21,7 @@ def parse_args():
 def volcano_plot_from_deseq2_toptable(input_table):
 
     # read data with metadata
-    df = pd.read_csv(input_table, index_col=0, sep="\t")
+    df = pd.read_csv(input_table, index_col=0, sep="\t", skiprows=1)
 
     # create plot and return it
     return nfdatautils.plt.volcano(

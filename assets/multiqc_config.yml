@@ -23,29 +23,25 @@ report_section_order:
     order: 3100
   # Post-alignment QC
   picard:
-    order: 3002
-  samtools:
     order: 3001
+  samtools:
+    order: 3002
   # Quantification
   featurecounts:
-    order: 2000
+    order: 2002
   # Post-quantification QC
-  featurecounts_biotype:
-    order: 3000
-  sample-relationships:
-    order: 1006
-  star_salmon_deseq2_pca:
-    order: 1005
-  star_salmon_deseq2_clustering:
-    order: 1004
-  salmon_deseq2_pca:
-    order: 1003
-  salmon_deseq2_clustering:
-    order: 1002
-  star_rsem_deseq2_pca:
-    order: 1001
-  star_rsem_deseq2_clustering:
-    order: 1000
+  biotype_counts:
+    order: 2001
+  sample_correlation:
+    order: 2000
+  # Normalization and dimensionality reduction
+  r_count_norm:
+    order: 901
+  dim_reduction:
+    order: 900
+  # Differential expression analysis
+  dea:
+    order: 800
   # Summaries
   "nfdata-omics-rnaseq-methods-description":
     order: -1000
@@ -57,6 +53,20 @@ report_section_order:
 export_plots: true
 disable_version_detection: true
 sample_names_replace_exact: true
+skip_generalstats: false
+
+table_sample_merge:
+  "R1": "_trimmed_1"
+  "R2": "_trimmed_2"
+
+title: "RNASeq"
+subtitle: |
+  <a href="https://humantechnopole.it/en/facilities/national-facility-for-data-handling-analysis/">National Facility for Data Handling and Analysis</a> - Human Technopole 
+intro_text: |
+  This report includes the results of the RNASeq analysis pipeline developed by the National Facility for Data 
+  Handling and Analysis based on the nf-core/rnaseq pipeline, with some modifications to suit our needs.
+  This pipeline performs quality control, alignment, quantification, and differential expression analysis of bulk
+  transcriptomics data.
 
 # Run only these modules
 run_modules:
@@ -69,18 +79,100 @@ run_modules:
   - featurecounts
   - samtools
   - picard
+  - dea
+  - dim_reduction
+  - r_count_norm
+  - enrichr
 
 # Order of modules
 
 module_order:
   - cutadapt
-  - fastp
+  - fastp:
+      anchor: "fastp"
+      name: "Initial QC and Trimming"
+      info: |
+        This section of the report shows the initial quality control, with the results
+        of the trimming and filtering steps performed by the fastp tool. 
+      extra: |
+        Fastp is a fast all-in-one preprocessing tool for FastQ files. It provides
+        fast and accurate adapter trimming, quality filtering, and read deduplication.
+        It also generates a variety of quality control metrics.
   - fastqc:
       anchor: "fastqc_trimmed"
-      name: "FastQC (trimmed)"
+      name: "Post Processing QC"
       info: "This section of the report shows FastQC results after adapter trimming."
       path_filters:
         - "*_trimmed*fastqc.zip"
+  - star:
+      anchor: "star"
+      name: "Alignment"
+      info: |
+        This section of the report shows the results of the STAR alignment step.
+        STAR is a fast and accurate aligner for RNA-Seq data.
+  - samtools:
+      anchor: "samtools"
+      name: "Post Alignment QC - samtools"
+      info: |
+        This section of the report shows the results of the post-alignment quality control
+        steps performed by samtools.
+  - picard:
+      anchor: "picard"
+      name: "Post Alignment QC - Picard"
+      info: |
+        This section of the report shows the results of the post-alignment quality control
+        steps performed by Picard.
+  - featurecounts:
+      anchor: "featurecounts"
+      name: "Quantification"
+      info: |
+        This section of the report shows the results of the featureCounts quantification step.
+        featureCounts is a read summarization tool for RNA-Seq data.
+  - r_count_norm:
+      anchor: "r_count_norm"
+      name: "Expression values and normalization"
+      info: |
+        Expression values are provided in tables, where each column represents a sample and each row corresponds to a gene.<br>
+        The raw counts table contains gene expression quantification, as calculated by FeatureCounts, for all the annotated genes. Raw count values are non-negative integers.<br>
+        Count per million reads (CPM) values are raw counts normalized to account for the different library sizes of different samples, and multiplied by a scale factor of 1 million. Cpm values are non-negative numbers that sum to 1.000.000 for each sample, allowing direct comparison of the same gene across different samples.<br>
+        Reads per kilobase per million mapped reads (RPKM) values are raw counts normalized using the trimmed mean of M-values (TMM) method to adjust for differences in sequencing depth and library composition (Robinson, MD, and Oshlack, A (2010). A scaling normalization method for differential expression analysis of RNA-seq data. Genome Biology 11, R25).
+        Rpkm values are also adjusted for gene length, enabling direct comparison of different genes within the same sample. RPKM values were log2-transformed to enhance graphical representation and, as a result, can include both positive and negative numbers.<br>
+        Expressed genes were defined as those genes showing at least 1 CPM in a number of samples equal to the size of the smallest group being compared.
+  - dim_reduction:
+      anchor: "dim_reduction"
+      name: "Dimensionality Reduction"
+      info: |
+        Principal Component Analysis (PCA) is a dimensionality reduction algorithm used to summarize the variability structure of an entire dataset into a few latent variables, called principal components. 
+        Each component is defined as a linear combination of the original features (for example, genes) and is orthogonal (and thus independent) to all previous components.
+        Components are defined as eigenvector of the covariance matrix of the data, with the first component explaining the largest percentage of variance and subsequent components accounting for progressively smaller proportions of variance.<br>
+        Multidimensional Scaling (MDS) is also a dimensionality reduction algorithm that seeks to preserve the pairwise distances between samples when projecting data into a lower-dimensional space. 
+        Unlike PCA, which identifies linear combinations of features to maximize variance, MDS is more flexible and works directly with a distance matrix, making it suitable for data where the relationships are non-linear or not well captured by variance. 
+        If the relationships between the variables in the dataset are primarily linear and the variance structure is well-defined, results from the two algorithms are likely to converge.<br>
+        In a PCA/MDS scatterplot, each dot represents a sample; dots that are closer together indicate more similar samples, while distant dots suggest highly divergent samples or potential outliers. 
+        The coordinates of each dot on the plot are calculated by the algorithms in an unsupervised manner. 
+        However, dots can be color-coded based on sample characteristics chosen by the users, enabling the identification of whether clusters of samples are associated with specific experimental or technical variables.<br>
+        Both analyses were performed on normalized expression values of the top 5000 most variable genes among the expressed ones. The data were preprocessed by centering and scaling to achieve a zero mean and unit variance. 
+        The following interactive plots display the distribution of samples in the reduced component spaces and can be used to highlight different sample characteristics as reported in the metadata.
+  - dea:
+      anchor: "dea"
+      name: "Differential Expression Analysis"
+      info: |
+        Differential Gene Expression (DGE) analysis was performed using the R package DESeq2, with no assumption about prior distribution (option betaPrior=FALSE) and applying independent filtering to the result. 
+        Independent filtering is a strategy that excludes genes with very low average expression from the calculation of adjusted p-values. By performing the p-value adjustment on a reduced set of genes, this approach increases the overall statistical power.<br>
+        [Description of the fitted models and the performed comparisons?]
+        Only the previously identified expressed genes were tested. Significance was defined setting a threshold of FDR < FDR_CUTOFF.<br>
+        For each performed comparison, a table with complete results is produced. In each table, for each gene is reported:<br>
+            • Base mean (the average normalized expression calculated across all the considered samples)<br>
+            • log2 Fold Change<br>
+            • raw p-value<br>
+            • p-value adjusted with the Benjamini-Hochberg correction (FDR value). Genes with NA values were discarded by the independent filtering procedure and should not be considered.<br>
+            • significance indexes according to each considered FDR cutoff ("up" for significantly up-regulated genes, "down" for significantly down-regulated genes and "not_sign" for all the not significant genes)<br>
+            • Gene information and annotations when available (e.g., Ensemble gene ID, genomic location of the gene etc.)<br>
+        For each performed comparison, an interactive volcano plot and an histogram showing nominal pvalues distribution are also produced.<br>
+        The volcano plot displays the log2 fold change and -log10 p-value for all tested genes. Blue and red dots represent downregulated and upregulated genes, respectively, while gray dots correspond to non-significant genes.<br>
+        The histogram of nominal pvalue distributions provides information about the overall significance of the considered comparison. 
+        If the null hypothesis (i.e. no difference among groups) holds for each tested gene, p-value distribution would be uniform between 0 and 1. At the opposite, a large number of small p-values confirms the significance of the considered comparison.
+
 
 # Don't show % Dups in the General Stats table (we have this from Picard)
 table_columns_visible:
@@ -118,9 +210,28 @@ sp:
   picard/markdups:
     fn: "*.MarkDuplicates.metrics.txt"
 
+  sample_correlation:
+    fn: '*_correlation_table.txt'
+
+  enrichr/all:
+    fn: "*.TOP_25.all.txt"
+  enrichr/down:
+    fn: "*.TOP_25.down.txt"
+  enrichr/up:
+    fn: "*.TOP_25.up.txt"
 
 # See https://github.com/ewels/MultiQC_TestData/blob/master/data/custom_content/with_config/table_headerconfig/multiqc_config.yaml
 custom_data:
+  sample_correlation:
+    id: 'sample_correlation'
+    section_name: 'Sample-to-sample Correlation'
+    description: |
+      Sample-to-sample Pearsons' correlation is calculated from the CPM values of all expressed genes. 
+      The resulting heatmap illustrates the pairwise correlation indices, with red indicating higher correlation and blue indicating lower correlation.
+    plot_type: 'heatmap'
+    pconfig:
+      id: 'correlation_heatmap'
+    sort_rows: true
   fail_trimmed_samples:
     section_name: "WARNING: Fail Trimming Check"
     description: "List of samples that failed the minimum trimmed reads threshold
