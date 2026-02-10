@@ -80,7 +80,8 @@ workflow DIFFERENTIAL_EXPRESSION {
                 fdr_threshold
             )
             ch_versions = ch_versions.mix(DESEQ2_COMPARE.out.versions)
-            ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_COMPARE.out.dge.collect{it[1]})
+            ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_COMPARE.out.dge.collect{ _meta, file -> file })
+            ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_COMPARE.out.summary.collect{ _meta, file -> file })
 
             DESEQ2_COMPARE.out.dge
                 .combine(genesets_ch)
@@ -96,7 +97,6 @@ workflow DIFFERENTIAL_EXPRESSION {
             SUMMARY_TABLE(
                 ch_dge_summary,
             )
-            ch_multiqc_files = ch_multiqc_files.mix(SUMMARY_TABLE.out.joint_summary)
 
             //
             // FUNCTIONAL ANALYSIS: ENRICHR
@@ -127,7 +127,7 @@ workflow DIFFERENTIAL_EXPRESSION {
             ch_versions = ch_versions.mix(ENRICHR_TOPN.out.versions)
             */
 
-            
+
 
             //
             // FUNCTIONAL ANALYSIS: GSEA
@@ -144,7 +144,7 @@ workflow DIFFERENTIAL_EXPRESSION {
                 .map{ _key, metas, results -> [["id": metas[0].id, "cf": metas[0].cf], results] }
                 .set{ ch_gsea }
 
-            
+
             //
             // GSEA MERGING
             //
@@ -152,7 +152,7 @@ workflow DIFFERENTIAL_EXPRESSION {
                 ch_gsea
             )
             ch_versions = ch_versions.mix(GSEA_MERGE.out.versions)
-
+            ch_multiqc_files = ch_multiqc_files.mix(GSEA_MERGE.out.gsea_topn.collect{ _meta, file -> file })
 
             //
             // FUNCTIONAL ANALYSIS: CLUSTERPROFILER OVER-REPRESENTATION
