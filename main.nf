@@ -110,7 +110,10 @@ workflow {
         params.outdir,
         params.input,
         params.counts,
-        params.metadata
+        params.metadata,
+        params.help,
+        params.help_full,
+        params.show_hidden
     )
 
     //
