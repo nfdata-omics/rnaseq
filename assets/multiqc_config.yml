@@ -55,6 +55,8 @@ disable_version_detection: true
 sample_names_replace_exact: true
 skip_generalstats: false
 
+log_filesize_limit: 200000000
+
 table_sample_merge:
   "R1": "_trimmed_1"
   "R2": "_trimmed_2"
