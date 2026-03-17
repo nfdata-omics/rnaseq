@@ -22,7 +22,8 @@ process GTF_FILTER {
     filter_gtf.py \\
         --gtf $gtf \\
         --fasta $fasta \\
-        --prefix ${fasta.baseName}
+        --prefix ${fasta.baseName} \\
+        --skip_transcript_id_check
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":

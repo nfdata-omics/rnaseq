@@ -18,8 +18,8 @@ workflow DIFFERENTIAL_EXPRESSION {
     gene_id_index
     metadata_table
     model_formula
-    comparisons_ch
-    genesets_ch
+    ch_comparisons
+    ch_genesets
     frac_expressed
     fdr_threshold
     lfc_threshold
@@ -65,38 +65,105 @@ workflow DIFFERENTIAL_EXPRESSION {
         )
         ch_versions = ch_versions.mix(DESEQ2_FIT.out.versions)
 
-        if ( comparisons_ch ) {
+        DESEQ2_FIT.out.rds
+            .combine(ch_comparisons)
+            .map{ meta, rds, cf -> [["id": meta.id, "cf": cf], rds, cf] }
+            .set{ ch_rds_cf }
 
-            DESEQ2_FIT.out.rds
-                .combine(comparisons_ch)
-                .map{ meta, rds, cf -> [["id": meta.id, "cf": cf], rds, cf] }
-                .set{ ch_rds_cf }
+        //
+        // DESEQ2 COMPARISONS
+        //
+        DESEQ2_COMPARE(
+            ch_rds_cf,
+            fdr_threshold
+        )
+        ch_versions = ch_versions.mix(DESEQ2_COMPARE.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_COMPARE.out.dge.collect{ _meta, file -> file })
+        ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_COMPARE.out.summary.collect{ _meta, file -> file })
 
-            //
-            // DESEQ2 COMPARISONS
-            //
-            DESEQ2_COMPARE(
-                ch_rds_cf,
-                fdr_threshold
+        DESEQ2_COMPARE.out.summary
+            .map{ meta, result -> [meta.id, meta.cf, result] }
+            .groupTuple()
+            .map{ key, cfs, results -> [["id": key], cfs, results] }
+            .set{ ch_dge_summary }
+
+        SUMMARY_TABLE(
+            ch_dge_summary,
+        )
+
+        DESEQ2_COMPARE.out.dge
+        .combine(ch_genesets)
+        .map{ meta, dge, geneset -> [ meta + ["geneset": file(geneset).baseName], dge, geneset] }
+        .set{ ch_dge_geneset }
+
+        //
+        // FUNCTIONAL ANALYSIS: GSEA
+        //
+        GSEA(
+            ch_dge_geneset,
+            fdr_pathways
+        )
+        ch_versions = ch_versions.mix(GSEA.out.versions)
+
+        GSEA.out.xlsx
+        .map{ meta, result -> [[meta.id, meta.cf], meta, result] }
+        .groupTuple()
+        .map{ _key, metas, results -> [["id": metas[0].id, "cf": metas[0].cf], results] }
+        .set{ ch_gsea }
+
+        //
+        // GSEA MERGING
+        //
+        GSEA_MERGE(
+            ch_gsea
+        )
+        ch_versions = ch_versions.mix(GSEA_MERGE.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(GSEA_MERGE.out.gsea_topn.collect{ _meta, file -> file })
+
+        //
+        // FUNCTIONAL ANALYSIS: CLUSTERPROFILER OVER-REPRESENTATION
+        //
+        CLUSTERPROFILER_ORA(
+            ch_dge_geneset,
+            fdr_threshold,
+            lfc_threshold
+        )
+        ch_versions = ch_versions.mix(CLUSTERPROFILER_ORA.out.versions)
+
+        CLUSTERPROFILER_ORA.out.CP_all
+            .map{ meta, result -> [[meta.id, meta.cf], meta, result] }
+            .groupTuple()
+            .map{ _key, metas, results -> [["id": metas[0].id, "cf": metas[0].cf], results] }
+            .set{ ch_CP_all }
+        CLUSTERPROFILER_ORA.out.CP_up
+            .map{ meta, result -> [[meta.id, meta.cf], meta, result] }
+            .groupTuple()
+            .map{ _key, metas, results -> [["id": metas[0].id, "cf": metas[0].cf], results] }
+            .set{ ch_CP_up }
+        CLUSTERPROFILER_ORA.out.CP_down
+            .map{ meta, result -> [[meta.id, meta.cf], meta, result] }
+            .groupTuple()
+            .map{ _key, metas, results -> [["id": metas[0].id, "cf": metas[0].cf], results] }
+            .set{ ch_CP_down }
+
+        ch_CP_all
+            .mix(
+                ch_CP_up,
+                ch_CP_down
             )
-            ch_versions = ch_versions.mix(DESEQ2_COMPARE.out.versions)
-            ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_COMPARE.out.dge.collect{ _meta, file -> file })
-            ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_COMPARE.out.summary.collect{ _meta, file -> file })
+            .set{ ch_CP }
 
-            DESEQ2_COMPARE.out.dge
-                .combine(genesets_ch)
-                .map{ meta, dge, geneset -> [ meta + ["geneset": file(geneset).baseName], dge, geneset] }
-                .set{ ch_dge_geneset }
-
-            DESEQ2_COMPARE.out.summary
-                .map{ meta, result -> [meta.id, meta.cf, result] }
-                .groupTuple()
-                .map{ key, cfs, results -> [["id": key], cfs, results] }
-                .set{ ch_dge_summary }
-
-            SUMMARY_TABLE(
-                ch_dge_summary,
-            )
+        //
+        // CLUSTERPROFILER OVER-REPRESENTATION MERGING
+        //
+        CLUSTERPROFILER_ORA_MERGE(
+            ch_CP,
+            fdr_pathways,
+            n_pathways
+        )
+        ch_versions = ch_versions.mix(CLUSTERPROFILER_ORA.out.versions)
+        ch_multiqc_files = ch_multiqc_files.mix(CLUSTERPROFILER_ORA_MERGE.out.CP_topn.collect{it[1]})
+    }
 
             //
             // FUNCTIONAL ANALYSIS: ENRICHR
@@ -126,81 +193,6 @@ workflow DIFFERENTIAL_EXPRESSION {
             )
             ch_versions = ch_versions.mix(ENRICHR_TOPN.out.versions)
             */
-
-
-
-            //
-            // FUNCTIONAL ANALYSIS: GSEA
-            //
-            GSEA(
-                ch_dge_geneset,
-                fdr_pathways
-            )
-            ch_versions = ch_versions.mix(GSEA.out.versions)
-
-            GSEA.out.xlsx
-                .map{ meta, result -> [[meta.id, meta.cf], meta, result] }
-                .groupTuple()
-                .map{ _key, metas, results -> [["id": metas[0].id, "cf": metas[0].cf], results] }
-                .set{ ch_gsea }
-
-
-            //
-            // GSEA MERGING
-            //
-            GSEA_MERGE(
-                ch_gsea
-            )
-            ch_versions = ch_versions.mix(GSEA_MERGE.out.versions)
-            ch_multiqc_files = ch_multiqc_files.mix(GSEA_MERGE.out.gsea_topn.collect{ _meta, file -> file })
-
-            //
-            // FUNCTIONAL ANALYSIS: CLUSTERPROFILER OVER-REPRESENTATION
-            //
-            CLUSTERPROFILER_ORA(
-                ch_dge_geneset,
-                fdr_threshold,
-                lfc_threshold
-            )
-            ch_versions = ch_versions.mix(CLUSTERPROFILER_ORA.out.versions)
-
-            CLUSTERPROFILER_ORA.out.CP_all
-                .map{ meta, result -> [[meta.id, meta.cf], meta, result] }
-                .groupTuple()
-                .map{ _key, metas, results -> [["id": metas[0].id, "cf": metas[0].cf], results] }
-                .set{ ch_CP_all }
-            CLUSTERPROFILER_ORA.out.CP_up
-                .map{ meta, result -> [[meta.id, meta.cf], meta, result] }
-                .groupTuple()
-                .map{ _key, metas, results -> [["id": metas[0].id, "cf": metas[0].cf], results] }
-                .set{ ch_CP_up }
-            CLUSTERPROFILER_ORA.out.CP_down
-                .map{ meta, result -> [[meta.id, meta.cf], meta, result] }
-                .groupTuple()
-                .map{ _key, metas, results -> [["id": metas[0].id, "cf": metas[0].cf], results] }
-                .set{ ch_CP_down }
-
-            ch_CP_all
-                .mix(
-                    ch_CP_up,
-                    ch_CP_down
-                )
-                .set{ ch_CP }
-
-
-            //
-            // CLUSTERPROFILER OVER-REPRESENTATION MERGING
-            //
-            CLUSTERPROFILER_ORA_MERGE(
-                ch_CP,
-                fdr_pathways,
-                n_pathways
-            )
-            ch_versions = ch_versions.mix(CLUSTERPROFILER_ORA.out.versions)
-            ch_multiqc_files = ch_multiqc_files.mix(CLUSTERPROFILER_ORA_MERGE.out.CP_topn.collect{it[1]})
-
-        }
-    }
 
     emit:
     versions    = ch_versions
