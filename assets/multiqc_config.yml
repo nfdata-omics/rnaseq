@@ -32,11 +32,11 @@ report_section_order:
   # Post-quantification QC
   biotype_counts:
     order: 2001
-  sample_correlation:
-    order: 2000
   # Normalization and dimensionality reduction
   r_count_norm:
-    order: 901
+    order: 1000
+  sample_correlation:
+    order: 950
   dim_reduction:
     order: 900
   # Differential expression analysis
@@ -45,10 +45,10 @@ report_section_order:
   # Summaries
   "nfdata-omics-rnaseq-methods-description":
     order: -1000
-  software_versions:
-    order: -1001
   "nfdata-omics-rnaseq-summary":
-    order: -1002
+    order: -1100
+  software_versions:
+    order: -2000
 
 export_plots: true
 disable_version_detection: true
@@ -103,7 +103,7 @@ module_order:
   - fastqc:
       anchor: "fastqc_trimmed"
       name: "Post Processing QC"
-      info: "This section of the report shows FastQC results after adapter trimming."
+      info: "This section of the report shows FastQC results after adapter and quality trimming."
       path_filters:
         - "*_trimmed*fastqc.zip"
   - star:
@@ -137,7 +137,7 @@ module_order:
         Expression values are provided in tables, where each column represents a sample and each row corresponds to a gene.<br>
         The raw counts table contains gene expression quantification, as calculated by FeatureCounts, for all the annotated genes. Raw count values are non-negative integers.<br>
         Count per million reads (CPM) values are raw counts normalized to account for the different library sizes of different samples, and multiplied by a scale factor of 1 million. Cpm values are non-negative numbers that sum to 1.000.000 for each sample, allowing direct comparison of the same gene across different samples.<br>
-        Reads per kilobase per million mapped reads (RPKM) values are raw counts normalized using the trimmed mean of M-values (TMM) method to adjust for differences in sequencing depth and library composition (Robinson, MD, and Oshlack, A (2010). A scaling normalization method for differential expression analysis of RNA-seq data. Genome Biology 11, R25).
+        Reads per kilobase per million mapped reads (RPKM) values are raw counts normalized using the trimmed mean of M-values (TMM) method to adjust for differences in sequencing depth and library composition.
         Rpkm values are also adjusted for gene length, enabling direct comparison of different genes within the same sample. RPKM values were log2-transformed to enhance graphical representation and, as a result, can include both positive and negative numbers.<br>
         Expressed genes were defined as those genes showing at least 1 CPM in a number of samples equal to the size of the smallest group being compared.
   - dim_reduction:
@@ -159,10 +159,9 @@ module_order:
       anchor: "dea"
       name: "Differential Expression Analysis"
       info: |
-        Differential Gene Expression (DGE) analysis was performed using the R package DESeq2, with no assumption about prior distribution (option betaPrior=FALSE) and applying independent filtering to the result. 
+        Differential Gene Expression (DGE) analysis was performed using the R package DESeq2, with no assumption about prior distribution (option betaPrior=FALSE) and applying independent filtering to the result.<br>
         Independent filtering is a strategy that excludes genes with very low average expression from the calculation of adjusted p-values. By performing the p-value adjustment on a reduced set of genes, this approach increases the overall statistical power.<br>
-        [Description of the fitted models and the performed comparisons?]
-        Only the previously identified expressed genes were tested. Significance was defined setting a threshold of FDR < FDR_CUTOFF.<br>
+        Only genes identified as expressed in each comparison were tested. Significance was defined setting a threshold of False Discovery Rate < 0.05.<br>
         For each performed comparison, a table with complete results is produced. In each table, for each gene is reported:<br>
             • Base mean (the average normalized expression calculated across all the considered samples)<br>
             • log2 Fold Change<br>
@@ -174,6 +173,21 @@ module_order:
         The volcano plot displays the log2 fold change and -log10 p-value for all tested genes. Blue and red dots represent downregulated and upregulated genes, respectively, while gray dots correspond to non-significant genes.<br>
         The histogram of nominal pvalue distributions provides information about the overall significance of the considered comparison. 
         If the null hypothesis (i.e. no difference among groups) holds for each tested gene, p-value distribution would be uniform between 0 and 1. At the opposite, a large number of small p-values confirms the significance of the considered comparison.
+  - enrichr:
+      anchor: "enrichr"
+      name: "Functional Enrichment Analysis"
+      info: |
+        Functional enrichment analysis was performed using the clusterProfiler R package through over-representation analysis (ORA) and the pre-ranked Gene Set Enrichment Analysis (GSEA) algorithm.<br>
+        ORA requires a gene list as input, typically consisting of significant genes identified in a previous DGE analysis, and evaluates whether this list is statistically enriched for genes within predefined gene sets from selected collections.<br>
+        ORA tests whether the observed overlap between the input gene list and specific gene sets is greater than would be expected by chance. The significance of the enrichment is assessed relative to a background set, defined as the complete list of expressed genes in the dataset, representing the universe of possible DEGs in the given experimental context.<br>
+        For each DGE comparison, three lists of significant genes were extracted and tested:​ up-regulated genes, down-regulated genes, and all the significant genes, either up- or down-regulated, considered together. Lists shorter than 5 genes are not evaluated.<br>
+        When interpreting results from an over-representation analysis, the most important metrics to consider are the adjusted p-value (the lower the better) and the gene ratio (the greater the better), that quantifies the proportion of input genes overlapping with a given gene set.<br>
+        To perform pre-ranked GSEA, for each DGE comparison, genes were ranked according to their log2 Fold Change. The GSEA algorithm evaluates whether genes from a particular pathway are significantly enriched at the top or bottom of the ranked list (corresponding to up- or down-regulation), or if instead they are randomly distributed across the ranked list.<br>
+        Key metrics for interpreting GSEA results include the adjusted p-value (the lower the better) and the Normalized Enrichment Score (NES, the greater in absolute value the better), which reflects both the magnitude and the direction of enrichment. In addition to these quantitative statistics, enrichment plots are generated for the top significantly enriched pathways (corresponding files are provided separately from this report).
+        The shape of an enrichment curve provides valuable diagnostic insight: a genuine enrichment typically displays a sharp and localized increase near the top or bottom of the ranked list, corresponding to highly up- or down-regulated genes. In contrast, flatter or more dispersed curves may indicate false positives.<br>
+        ORA and pre-ranked GSEA were conducted on signatures retrieved from the three gene ontologies (biological process, molecular function and cellular component), canonical pathways collections (e.g., Kegg, Biocarta, Reactome) and Hallmarks, as reported in the Molecular Signature Database (https://www.gsea-msigdb.org/gsea/msigdb).
+        
+
 
 
 # Don't show % Dups in the General Stats table (we have this from Picard)

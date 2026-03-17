@@ -41,15 +41,17 @@ workflow DIM_REDUCTION {
     ch_versions = ch_versions.mix(R_COUNT_NORM.out.versions)
     ch_multiqc_files = ch_multiqc_files.mix(R_COUNT_NORM.out.size_factors)
 
-    //
-    // HEATMAP OF CONTROL GENES
-    //
-    CONTROL_GENE_HEATMAP(
-        R_COUNT_NORM.out.rds,
-        params.control_genes_list,
-        ""
-    )
-    ch_versions = ch_versions.mix(CONTROL_GENE_HEATMAP.out.versions)
+    if ( params.control_genes_list ){
+        //
+        // HEATMAP OF CONTROL GENES
+        //
+        CONTROL_GENE_HEATMAP(
+            R_COUNT_NORM.out.rds,
+            params.control_genes_list,
+            ""
+        )
+        ch_versions = ch_versions.mix(CONTROL_GENE_HEATMAP.out.versions)
+    }
 
     //
     // CALCULATE SAMPLES CORRELATION

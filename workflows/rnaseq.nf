@@ -360,13 +360,9 @@ workflow RNASEQ {
     }
 
     // DEA AND FUNCTIONAL
-
-    channel
-        .fromList(params.comparisons.split(',').flatten())
-        .set{ comparisons_ch }
-    channel
-        .fromList(params.genesets.split(',').flatten())
-        .set{ genesets_ch }
+    
+    ch_comparisons = params.comparisons ? Channel.fromList(params.comparisons.split(',').flatten()) : Channel.empty()
+    ch_genesets    = params.genesets    ? Channel.fromList(params.genesets.split(',').flatten())    : Channel.empty()
 
     DIFFERENTIAL_EXPRESSION(
         ch_counts_split,
@@ -374,8 +370,8 @@ workflow RNASEQ {
         gene_id_index,
         metadata,
         params.model_formula,
-        comparisons_ch,
-        genesets_ch,
+        ch_comparisons,
+        ch_genesets,
         params.frac_expressed,
         params.fdr_threshold,
         params.lfc_threshold,

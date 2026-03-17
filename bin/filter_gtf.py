@@ -22,9 +22,17 @@ def extract_fasta_seq_names(fasta_name: str) -> Set[str]:
 
 def tab_delimited(file: str) -> float:
     """Check if file is tab-delimited and return median number of tabs."""
+    tab_counts = []
     with open(file, "r") as f:
-        data = f.read(102400)
-        return statistics.median(line.count("\t") for line in data.split("\n") if not line.startswith("#"))
+        for line in f:
+            if line.startswith("#") or not line.strip():
+                continue  # skip header and empty lines
+            tab_counts.append(line.count("\t"))
+            if len(tab_counts) == 100:
+                break  # consider the first 100 valid lines
+    if not tab_counts:
+        raise ValueError("No valid (non-header) lines found in file.")
+    return statistics.median(tab_counts)
 
 
 def filter_gtf(fasta: str, gtf_in: str, filtered_gtf_out: str, skip_transcript_id_check: bool) -> None:
