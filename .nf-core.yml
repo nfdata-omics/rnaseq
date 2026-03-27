@@ -15,6 +15,7 @@ lint:
     - .github/ISSUE_TEMPLATE/bug_report.yml
   multiqc_config:
     - report_comment
+    - report_section_order
   nextflow_config:
     - manifest.name
     - manifest.homePage
