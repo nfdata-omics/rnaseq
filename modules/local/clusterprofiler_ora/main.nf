@@ -40,4 +40,3 @@ process CLUSTERPROFILER_ORA {
     ora_clusterProfiler.R --version >> versions.yml
     """
 }
-

@@ -5,7 +5,7 @@ suppressMessages(library("sva"))
 suppressMessages(library("stringr"))
 suppressMessages(library("SummarizedExperiment"))
 
-### Script to perform batch correction using the ComBat_seq function from package sva: https://bioconductor.org/packages/release/bioc/vignettes/sva/inst/doc/sva.pdf 
+### Script to perform batch correction using the ComBat_seq function from package sva: https://bioconductor.org/packages/release/bioc/vignettes/sva/inst/doc/sva.pdf
 
 option_list <- list(
   make_option(c("-k", "--keep"), action="store", type="character", default="", help="The name(s) of the metadata column(s) containing biological groups to preserve (signals from these variables are kept in data after adjustment). If multiple names are provided, they must be comma-separated with no blank spaces (e.g. variable1,variable2). Only categorical variables could be included. [default \"%default\"]"),
@@ -64,7 +64,7 @@ for(i in 1:length(biol_groups)){
   }
 }
 if(biol_groups[1]!=""){
-  to_keep = meta[,biol_groups] 
+  to_keep = meta[,biol_groups]
 }
 
 # Performing adjustment with ComBat_seq
@@ -107,5 +107,3 @@ if(!is.null(w)){
   print(w)
 }
 sink()
-
-

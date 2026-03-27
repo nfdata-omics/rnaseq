@@ -16,7 +16,7 @@ option_list <- list(
 parser<-OptionParser(usage = "%prog [options] dge_toptable gmt_file",
                      option_list = option_list, prog = "ora_clusterProfiler",
                      description = "
-                     Perform over-representation analysis using the clusterProfiler R package. 
+                     Perform over-representation analysis using the clusterProfiler R package.
                      'dge_toptable' is the path of the DGE toptable from which significant genes are extracted. The DGE toptable must have the following structure:
                      .META: dge_toptable
                         1. gene names
@@ -74,10 +74,10 @@ my_gmt = read.gmt(gmt_file)
 if(length(my_genes)>=5){
   if(length(my_genes)>10000){
     my_genes = my_genes[1:10000]
-    print("The list of differentially expressed genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes. 
+    print("The list of differentially expressed genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes.
             Consider to apply more stringent cutoffs on FDR and/or log2FC")
   }
-  my_enrich = tryCatch({ 
+  my_enrich = tryCatch({
     enricher(gene=my_genes, universe=background_genes, maxGSSize=1000, TERM2GENE=my_gmt)},
     # BgRatio = M/N, with M = #genes in the selected pathway that are also in the background; with N = #unique genes in all the gmt (all pathways) that are also in the background
     # GeneRatio = M/N, with M = #my input genes that are also in the selected pathway; with N = #my input genes that are also in all the gmt (all pathways)
@@ -97,10 +97,10 @@ if(length(my_genes)>=5){
 if(length(my_genes_up)>=5){
   if(length(my_genes_up)>10000){
     my_genes_up = my_genes_up[1:10000]
-    print("The list of up-regulated genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes. 
+    print("The list of up-regulated genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes.
             Consider to apply more stringent cutoffs on FDR and/or log2FC")
   }
-  my_enrich_up = tryCatch({ 
+  my_enrich_up = tryCatch({
     enricher(gene=my_genes_up, universe=background_genes, maxGSSize=1000, TERM2GENE=my_gmt)},
     error = function(e) {message(e$message)
   })
@@ -118,13 +118,13 @@ if(length(my_genes_up)>=5){
 if(length(my_genes_down)>=5){
   if(length(my_genes_down)>10000){
     my_genes_down = my_genes_down[1:10000]
-    print("The list of down-regulated genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes. 
+    print("The list of down-regulated genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes.
             Consider to apply more stringent cutoffs on FDR and/or log2FC")
   }
   my_enrich_down = tryCatch({
     enricher(gene=my_genes_down, universe=background_genes, maxGSSize=1000, TERM2GENE=my_gmt)},
     error = function(e) {message(e$message)
-  })  
+  })
   if(!is.null(my_enrich_down)){
     write.table(x=my_enrich_down@result, file=paste(outname, ".", collection, ".down.txt",sep=""), row.names=F, col.names=T, sep="\t", quote=F)
   } else {
@@ -148,5 +148,3 @@ if(!is.null(w)){
   print(w)
 }
 sink()
-
-
