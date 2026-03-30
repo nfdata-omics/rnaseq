@@ -11,7 +11,7 @@ suppressMessages(library("SummarizedExperiment"))
 option_list <- list(
   #make_option(c("-n", "--num_samples"), action="store", type="integer", default=1, help="Number of samples to define expressed genes. Expressed genes are defined as those genes showing at least 1 cpm on at least 'n' different samples. Usually, this is the size of the smallest sample group. [default \"%default\"]"),
   make_option(c("-e", "--expressed"), action="store", type="double", default=0.5, help="Fraction of samples required to define a gene as expressed. A gene is considered expressed if it shows at least 1 cpm in at least a fraction 'e' of the samples. [default \"%default\"]"),
-  make_option(c("-s","--suffix"), action="store", type="character", default="", help="Suffix to append to the output paths, e.g. deseq2_obj_SUFFIX.rds. [default \"%default\"]"),
+  make_option(c("-s", "--suffix"), action="store", type="character", default="", help="Suffix to append to the output paths, e.g. deseq2_obj_SUFFIX.rds. [default \"%default\"]"),
   make_option(c("-v", "--version"), action="store_true", default=FALSE, help="Print the list of loaded package versions and exit.")
 )
 
@@ -21,7 +21,8 @@ parser<-OptionParser(usage = "%prog [options] rna_object model_formula",
                      Fit a differential gene expression (DGE) model using DESeq2.
                      'rna_object' is the path of a .rds object containing a Summarized Experiment with expression data and samples metadata.
                      'model_formula' is the formula used for the design of the DESeq2 model. It must start with a '~' and include all the biological and technical variables that should be accounted for (e.g. ~0+genotype+treatment+batch) with no blank spaces.
-                                     If you plan to perform a comparison between aggregated combinations of levels (e.g. treat1/treat2/treat3 vs ctrl), the model formula must start with zero '~0+... ', otherwise zero could be omitted."
+                                     If you plan to perform a comparison between aggregated combinations of levels (e.g. treat1/treat2/treat3 vs ctrl), the model formula must start with zero (e.g. ~0+treatment).
+                                     If you plan to test the effect of a continuous variable (e.g. age, score...), the model formula must NOT start with zero (e.g. ~age, ~score)."
 )
 
 arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments = TRUE)
