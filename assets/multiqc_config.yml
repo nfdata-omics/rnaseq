@@ -63,9 +63,9 @@ table_sample_merge:
 
 title: "RNASeq"
 subtitle: |
-  <a href="https://humantechnopole.it/en/facilities/national-facility-for-data-handling-analysis/">National Facility for Data Handling and Analysis</a> - Human Technopole 
+  <a href="https://humantechnopole.it/en/facilities/national-facility-for-data-handling-analysis/">National Facility for Data Handling and Analysis</a> - Human Technopole
 intro_text: |
-  This report includes the results of the RNASeq analysis pipeline developed by the National Facility for Data 
+  This report includes the results of the RNASeq analysis pipeline developed by the National Facility for Data
   Handling and Analysis based on the nf-core/rnaseq pipeline, with some modifications to suit our needs.
   This pipeline performs quality control, alignment, quantification, and differential expression analysis of bulk
   transcriptomics data.
@@ -95,7 +95,7 @@ module_order:
       name: "Initial QC and Trimming"
       info: |
         This section of the report shows the initial quality control, with the results
-        of the trimming and filtering steps performed by the fastp tool. 
+        of the trimming and filtering steps performed by the fastp tool.
       extra: |
         Fastp is a fast all-in-one preprocessing tool for FastQ files. It provides
         fast and accurate adapter trimming, quality filtering, and read deduplication.
@@ -144,16 +144,16 @@ module_order:
       anchor: "dim_reduction"
       name: "Dimensionality Reduction"
       info: |
-        Principal Component Analysis (PCA) is a dimensionality reduction algorithm used to summarize the variability structure of an entire dataset into a few latent variables, called principal components. 
+        Principal Component Analysis (PCA) is a dimensionality reduction algorithm used to summarize the variability structure of an entire dataset into a few latent variables, called principal components.
         Each component is defined as a linear combination of the original features (for example, genes) and is orthogonal (and thus independent) to all previous components.
         Components are defined as eigenvector of the covariance matrix of the data, with the first component explaining the largest percentage of variance and subsequent components accounting for progressively smaller proportions of variance.<br>
-        Multidimensional Scaling (MDS) is also a dimensionality reduction algorithm that seeks to preserve the pairwise distances between samples when projecting data into a lower-dimensional space. 
-        Unlike PCA, which identifies linear combinations of features to maximize variance, MDS is more flexible and works directly with a distance matrix, making it suitable for data where the relationships are non-linear or not well captured by variance. 
+        Multidimensional Scaling (MDS) is also a dimensionality reduction algorithm that seeks to preserve the pairwise distances between samples when projecting data into a lower-dimensional space.
+        Unlike PCA, which identifies linear combinations of features to maximize variance, MDS is more flexible and works directly with a distance matrix, making it suitable for data where the relationships are non-linear or not well captured by variance.
         If the relationships between the variables in the dataset are primarily linear and the variance structure is well-defined, results from the two algorithms are likely to converge.<br>
-        In a PCA/MDS scatterplot, each dot represents a sample; dots that are closer together indicate more similar samples, while distant dots suggest highly divergent samples or potential outliers. 
-        The coordinates of each dot on the plot are calculated by the algorithms in an unsupervised manner. 
+        In a PCA/MDS scatterplot, each dot represents a sample; dots that are closer together indicate more similar samples, while distant dots suggest highly divergent samples or potential outliers.
+        The coordinates of each dot on the plot are calculated by the algorithms in an unsupervised manner.
         However, dots can be color-coded based on sample characteristics chosen by the users, enabling the identification of whether clusters of samples are associated with specific experimental or technical variables.<br>
-        Both analyses were performed on normalized expression values of the top 5000 most variable genes among the expressed ones. The data were preprocessed by centering and scaling to achieve a zero mean and unit variance. 
+        Both analyses were performed on normalized expression values of the top 5000 most variable genes among the expressed ones. The data were preprocessed by centering and scaling to achieve a zero mean and unit variance.
         The following interactive plots display the distribution of samples in the reduced component spaces and can be used to highlight different sample characteristics as reported in the metadata.
   - dea:
       anchor: "dea"
@@ -171,7 +171,7 @@ module_order:
             • Gene information and annotations when available (e.g., Ensemble gene ID, genomic location of the gene etc.)<br>
         For each performed comparison, an interactive volcano plot and an histogram showing nominal pvalues distribution are also produced.<br>
         The volcano plot displays the log2 fold change and -log10 p-value for all tested genes. Blue and red dots represent downregulated and upregulated genes, respectively, while gray dots correspond to non-significant genes.<br>
-        The histogram of nominal pvalue distributions provides information about the overall significance of the considered comparison. 
+        The histogram of nominal pvalue distributions provides information about the overall significance of the considered comparison.
         If the null hypothesis (i.e. no difference among groups) holds for each tested gene, p-value distribution would be uniform between 0 and 1. At the opposite, a large number of small p-values confirms the significance of the considered comparison.
   - enrichr:
       anchor: "enrichr"
@@ -186,9 +186,6 @@ module_order:
         Key metrics for interpreting GSEA results include the adjusted p-value (the lower the better) and the Normalized Enrichment Score (NES, the greater in absolute value the better), which reflects both the magnitude and the direction of enrichment. In addition to these quantitative statistics, enrichment plots are generated for the top significantly enriched pathways (corresponding files are provided separately from this report).
         The shape of an enrichment curve provides valuable diagnostic insight: a genuine enrichment typically displays a sharp and localized increase near the top or bottom of the ranked list, corresponding to highly up- or down-regulated genes. In contrast, flatter or more dispersed curves may indicate false positives.<br>
         ORA and pre-ranked GSEA were conducted on signatures retrieved from the three gene ontologies (biological process, molecular function and cellular component), canonical pathways collections (e.g., Kegg, Biocarta, Reactome) and Hallmarks, as reported in the Molecular Signature Database (https://www.gsea-msigdb.org/gsea/msigdb).
-        
-
-
 
 # Don't show % Dups in the General Stats table (we have this from Picard)
 table_columns_visible:
@@ -227,7 +224,7 @@ sp:
     fn: "*.MarkDuplicates.metrics.txt"
 
   sample_correlation:
-    fn: '*_correlation_table.txt'
+    fn: "*_correlation_table.txt"
 
   enrichr/all:
     fn: "*.TOP_25.all.txt"
@@ -239,14 +236,14 @@ sp:
 # See https://github.com/ewels/MultiQC_TestData/blob/master/data/custom_content/with_config/table_headerconfig/multiqc_config.yaml
 custom_data:
   sample_correlation:
-    id: 'sample_correlation'
-    section_name: 'Sample-to-sample Correlation'
+    id: "sample_correlation"
+    section_name: "Sample-to-sample Correlation"
     description: |
-      Sample-to-sample Pearsons' correlation is calculated from the CPM values of all expressed genes. 
+      Sample-to-sample Pearsons' correlation is calculated from the CPM values of all expressed genes.
       The resulting heatmap illustrates the pairwise correlation indices, with red indicating higher correlation and blue indicating lower correlation.
-    plot_type: 'heatmap'
+    plot_type: "heatmap"
     pconfig:
-      id: 'correlation_heatmap'
+      id: "correlation_heatmap"
     sort_rows: true
   fail_trimmed_samples:
     section_name: "WARNING: Fail Trimming Check"

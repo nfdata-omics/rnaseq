@@ -4,7 +4,7 @@ suppressMessages(library("optparse"))
 suppressMessages(library("enrichR"))
 suppressMessages(library("openxlsx"))
 
-### Script to perform first line functional enrichment using enrichR 
+### Script to perform first line functional enrichment using enrichR
 option_list <- list(
   make_option(c("-F", "--FDR"), action="store", type="double", default=0.05, help="The FDR cutoff to define significant genes. [default \"%default\"]"),
   make_option(c("-l", "--logfc"), action="store", type="double", default=0, help="The cutoff on log2FC absolute value to define significant genes (in combination with FDR). [default \"%default\"]"),
@@ -14,7 +14,7 @@ option_list <- list(
 parser<-OptionParser(usage = "%prog [options] dge_toptable",
                      option_list = option_list, prog = "ora_enrichr",
                      description = "
-                     Perform over-representation analysis using the enrichR R package. 
+                     Perform over-representation analysis using the enrichR R package.
                      'dge_toptable' is the path of the DGE toptable from which significant genes are extracted. The DGE toptable must have the following structure:
                      .META: dge_toptable
                         1. gene names
@@ -80,7 +80,7 @@ signif_enrich_down = 0;
 if(length(my_genes)>=5){
   if(length(my_genes)>10000){
     my_genes = my_genes[1:10000]
-    print("The list of differentially expressed genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes. 
+    print("The list of differentially expressed genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes.
             Consider to apply more stringent cutoffs on FDR and/or log2FC")
   }
   my_enrichr = enrichR::enrichr(genes=my_genes, databases=enrich.databases)
@@ -90,7 +90,7 @@ if(length(my_genes)>=5){
 if(length(my_genes_up)>=5){
   if(length(my_genes_up)>10000){
     my_genes_up = my_genes_up[1:10000]
-    print("The list of up-regulated genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes. 
+    print("The list of up-regulated genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes.
             Consider to apply more stringent cutoffs on FDR and/or log2FC")
   }
   my_enrichr_up = enrichR::enrichr(genes=my_genes_up, databases=enrich.databases)
@@ -100,7 +100,7 @@ if(length(my_genes_up)>=5){
 if(length(my_genes_down)>=5){
   if(length(my_genes_down)>10000){
     my_genes_down = my_genes_down[1:10000]
-    print("The list of up-regulated genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes. 
+    print("The list of up-regulated genes was longer than 10.000 genes, therefore it was truncated at 10.000 genes.
             Consider to apply more stringent cutoffs on FDR and/or log2FC")
   }
   my_enrichr_down = enrichR::enrichr(genes=my_genes_down, databases=enrich.databases)
@@ -124,5 +124,3 @@ if(!is.null(w)){
   print(w)
 }
 sink()
-
-

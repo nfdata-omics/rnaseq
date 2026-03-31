@@ -5,7 +5,7 @@ suppressMessages(library("ggplot2"))
 suppressMessages(library("stringr"))
 suppressMessages(library("SummarizedExperiment"))
 
-### Script to produce violin plots of specific control genes 
+### Script to produce violin plots of specific control genes
 
 option_list <- list(
   make_option(c("-a", "--annotations"), action="store", type="character", default="", help="The name of the categorical variable used to group samples into separate violin plots. It must be the name of the corresponding metadata column. [default \"%default\"]"),
@@ -76,7 +76,7 @@ if(annot == ""){
     }
   }
   dev.off()
-  
+
 } else {
   if(!annot%in%colnames(colData(rna_exp))){
     stop("The selected variable does not appear in metadata. Please ensure the variable name matches exactly as it appears in the sample metadata.")
@@ -121,10 +121,3 @@ if(!is.null(w)){
   print(w)
 }
 sink()
-
-
-
-
-
-
-

@@ -55,7 +55,7 @@ write.table(cpm, "cpm.txt", quote=F, row.names=F, col.names=T, sep="\t")
 rna_exp@assays@data$cpm = cpm(y_all, log=FALSE)
 
 if(rna_exp@metadata$gene_length){
-	
+
 	# Log-norm-rpkm (TMM normalization)
 	y_all = calcNormFactors(y_all, method="TMM")
 	log_norm_rpkm = rpkm(y_all, log=T, gene.length=y_all$genes$Length)
@@ -63,7 +63,7 @@ if(rna_exp@metadata$gene_length){
 	colnames(log_norm_rpkm)[1] = "gene_name"
 	write.table(log_norm_rpkm, "log.norm.rpkm.txt", quote=F, row.names=F, col.names=T, sep="\t")
 	rna_exp@assays@data$log_norm_rpkm = rpkm(y_all, log=T, gene.length=y_all$genes$Length)
-	
+
 	# Lib size and normalization factor
 	size_factors = data.frame(samples=rownames(y_all$samples), lib.size=y_all$samples$lib.size, norm.factors=y_all$samples$norm.factors)
 	write.table(size_factors, "lib_size_factors.txt", quote=F, row.names=F, col.names=T, sep="\t")
@@ -90,6 +90,3 @@ if(!is.null(w)){
  print(w)
 }
 sink()
-
-
-

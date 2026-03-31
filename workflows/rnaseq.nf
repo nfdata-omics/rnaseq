@@ -360,7 +360,7 @@ workflow RNASEQ {
     }
 
     // DEA AND FUNCTIONAL
-    
+
     ch_comparisons = params.comparisons ? Channel.fromList(params.comparisons.split(',').flatten()) : Channel.empty()
     ch_genesets    = params.genesets    ? Channel.fromList(params.genesets.split(',').flatten())    : Channel.empty()
 

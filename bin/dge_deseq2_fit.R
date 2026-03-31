@@ -81,5 +81,3 @@ if(!is.null(w)){
   print(w)
 }
 sink()
-
-

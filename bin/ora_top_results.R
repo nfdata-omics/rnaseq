@@ -57,12 +57,12 @@ fx <- function(x) eval(parse(text=enrichR.table[x,]$Overlap))
     Table$Collection = rep(dat, nrow(Table))
     enrichR.table = rbind(enrichR.table, Table)
   }
-  
+
   # Considering only significant pathways
   p = row.names(enrichR.table[enrichR.table$Adjusted.P.value < fdr,])
-  
+
   if(length(p)>0) { # Discarding the not-significant results (to avoid errors)
-    pathways.dataframe = data.frame(Pathway=p, gene.ratio=sapply(p, fx), p.value=enrichR.table[p,]$P.value, p.value.adj=enrichR.table[p,]$Adjusted.P.value, 
+    pathways.dataframe = data.frame(Pathway=p, gene.ratio=sapply(p, fx), p.value=enrichR.table[p,]$P.value, p.value.adj=enrichR.table[p,]$Adjusted.P.value,
                                     minus.log.padj=-log10(enrichR.table[p,]$Adjusted.P.value), combined.score=enrichR.table[p,]$Combined.Score, collection=enrichR.table[p,]$Collection)
     # Sorting and saving the dataframe with top results
     pathways.dataframe = pathways.dataframe[order(pathways.dataframe$p.value.adj),]
@@ -83,6 +83,3 @@ if(!is.null(w)){
   print(w)
 }
 sink()
-
-
-

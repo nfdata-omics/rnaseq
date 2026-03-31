@@ -45,5 +45,3 @@ process CLUSTERPROFILER_ORA_MERGE {
     ora_clusterProfiler_merge.R --version >> versions.yml
     """
 }
-
-

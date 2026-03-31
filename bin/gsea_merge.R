@@ -49,12 +49,12 @@ for(f in files){
   # Filenames manipulation - The result may be a little dirty if the second group of the DGE comparison (e.g. 'B' in a comparison like Group_A_vs_B) contains a dot in its name.
   set_name = sub("^[^.]+\\.", "", strsplit(gsub(".xlsx", "", gsub("gsea.", "", basename(f))), "_vs_")[[1]][2])
   outname = gsub(".xlsx", "", gsub(set_name, "", basename(f)))
-  
+
   # Importing result table
   dat = read.xlsx(f)
   # Adding the table as an additional sheet in the merged excel file
   excel_list[[set_name]] = dat
-  
+
   # Extracting and merging significant pathways
   if(!"empty"%in%colnames(dat)){
     dat$collection = set_name
