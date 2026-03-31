@@ -55,7 +55,7 @@ for(f in files){
 		outname = paste0(paste(strsplit(gsub("\\.xlsx$", "", basename(f)), "\\.")[[1]][1:2], collapse="."), ".")
 		set_name = gsub("\\.xlsx$", "", gsub(outname, "", basename(f)))
 	}
-  
+
   # Importing result table
   dat = read.xlsx(f)
   # Adding the table as an additional sheet in the merged excel file

@@ -74,17 +74,17 @@ if((n_num==0 & n_denom>0) | (n_num>0 & n_denom==0)){
 }
 
 if(n_num==0 & n_denom==0){
-  
+
   # Continuous variable
   my_res = results(dds, name=variable, independentFiltering=TRUE, cooksCutoff=FALSE, alpha=fdr)
   # I turn off cooksCutoff for outlier detection, but in the model fitting function there was minRepforReplace=7
   outname = variable
   plot_title = variable
-  
+
 } else {
-  
+
   if(n_num>1 | n_denom>1){
-    
+
     # Custom list A1,A2,A3... vs B1,B2... contrast
     num_list = paste(variable, num, sep="")
     num_list = num_list[num_list%in%resultsNames(dds)]
@@ -98,15 +98,15 @@ if(n_num==0 & n_denom==0){
     # I turn off cooksCutoff for outlier detection, but in the model fitting function there was minRepforReplace=7
     outname = paste(variable, "_", numNames, "_vs_", denomNames, sep="")
     plot_title = paste(variable, ": ", numNames, " vs ", denomNames, sep="")
-    
+
   } else {
-    
+
     # Direct A vs B contrast
     my_res = results(dds, contrast=c(variable, num, denom), independentFiltering=TRUE, cooksCutoff=FALSE, alpha=fdr)
     # I turn off cooksCutoff for outlier detection, but in the model fitting function there was minRepforReplace=7
     outname = paste(variable, "_", numNames, "_vs_", denomNames, sep="")
     plot_title = paste(variable, ": ", numNames, " vs ", denomNames, sep="")
-    
+
   }
 }
 

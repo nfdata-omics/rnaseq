@@ -63,7 +63,7 @@ for(f in files){
 		outname = paste0(paste(strsplit(gsub(suffix, "", basename(f)), "\\.")[[1]][1:2], collapse="."), ".")
 		set_name = gsub(suffix, "", gsub(outname, "", basename(f)))
 	}
-  
+
   # Importing result table
   dat = read.delim(f, h=T)
 
