@@ -46,9 +46,15 @@ excel_list = list()
 sign_path = c()
 
 for(f in files){
-  # Filenames manipulation - The result may be a little dirty if the second group of the DGE comparison (e.g. 'B' in a comparison like Group_A_vs_B) contains a dot in its name.
-  set_name = sub("^[^.]+\\.", "", strsplit(gsub(".xlsx", "", gsub("gsea.", "", basename(f))), "_vs_")[[1]][2])
-  outname = gsub(".xlsx", "", gsub(set_name, "", basename(f)))
+	if (grepl("_vs_", f)) {
+		# Filenames manipulation for DGE comparisons - The result may be a little dirty if the second group of the DGE comparison (e.g. 'B' in a comparison like Group_A_vs_B) contains a dot in its name.
+		set_name = sub("^[^.]+\\.", "", strsplit(gsub("\\.xlsx$", "", gsub("gsea.", "", basename(f))), "_vs_")[[1]][2])
+		outname = gsub("\\.xlsx$", "", gsub(set_name, "", basename(f)))
+	} else {
+		# Filenames manipulation for DGE on continuous variables - The result may be a little dirty if the continuous variables contains a dot in its name.
+		outname = paste0(paste(strsplit(gsub("\\.xlsx$", "", basename(f)), "\\.")[[1]][1:2], collapse="."), ".")
+		set_name = gsub("\\.xlsx$", "", gsub(outname, "", basename(f)))
+	}
 
   # Importing result table
   dat = read.xlsx(f)

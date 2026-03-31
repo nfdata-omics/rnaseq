@@ -54,9 +54,15 @@ all_sign = c()
 excel_list = list()
 
 for(f in files){
-  # Filenames manipulation - The result may be a little dirty if the second group of the DGE comparison (e.g. 'B' in a comparison like Group_A_vs_B) contains a dot in its name.
-  set_name = sub("^[^.]+\\.", "", strsplit(gsub(suffix, "", gsub("ora_CP.", "", basename(f))), "_vs_")[[1]][2])
-  outname = gsub(suffix, "", gsub(set_name, "", basename(f)))
+	if (grepl("_vs_", f)) {
+		# Filenames manipulation for DGE comparisons - The result may be a little dirty if the second group of the DGE comparison (e.g. 'B' in a comparison like Group_A_vs_B) contains a dot in its name.
+		set_name = sub("^[^.]+\\.", "", strsplit(gsub(suffix, "", gsub("ora_CP.", "", basename(f))), "_vs_")[[1]][2])
+		outname = gsub(suffix, "", gsub(set_name, "", basename(f)))
+	} else {
+		# Filenames manipulation for DGE on continuous variables - The result may be a little dirty if the continuous variables contains a dot in its name.
+		outname = paste0(paste(strsplit(gsub(suffix, "", basename(f)), "\\.")[[1]][1:2], collapse="."), ".")
+		set_name = gsub(suffix, "", gsub(outname, "", basename(f)))
+	}
 
   # Importing result table
   dat = read.delim(f, h=T)
