@@ -6,7 +6,7 @@ suppressMessages(library("ggplot2"))
 suppressMessages(library("stringr"))
 suppressMessages(library("SummarizedExperiment"))
 
-### Script to extract expression values of specific control genes 
+### Script to extract expression values of specific control genes
 
 option_list <- list(
   make_option(c("-a", "--annotations"), action="store", type="character", default="", help="The name(s) of categorical variables to highlight on the top of the heatmap (as annotation column bars). They must be the names of the corresponding metadata columns. If multiple names are provided, they must be comma-separated with no blank spaces (e.g. genotype,treatment). [default \"%default\"]"),
@@ -72,7 +72,7 @@ if(scale_rows){
   var = apply(data_ctrl, 1, var)
   data_ctrl = data_ctrl[var!=0,]
   if(is.null(dim(data_ctrl))){
-    stop("All the selected genes have a constant expression across the samples and were excluded. 
+    stop("All the selected genes have a constant expression across the samples and were excluded.
          (It is possible that one single gene has a non-constant expression, but heatmap for a single gene is not supported.)")}
   scale_value = "row"
 } else {
@@ -139,4 +139,3 @@ if(!is.null(w)){
   print(w)
 }
 sink()
-

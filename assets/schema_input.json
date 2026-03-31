@@ -43,10 +43,10 @@
         },
         "anyOf": [
             {
-                "required": [ "sample", "fastq_1", "strandedness" ]
+                "required": ["sample", "fastq_1", "strandedness"]
             },
             {
-                "required": [ "sample", "bam" ]
+                "required": ["sample", "bam"]
             }
         ]
     }

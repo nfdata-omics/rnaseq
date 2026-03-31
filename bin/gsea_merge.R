@@ -60,7 +60,7 @@ for(f in files){
   dat = read.xlsx(f)
   # Adding the table as an additional sheet in the merged excel file
   excel_list[[set_name]] = dat
-  
+
   # Extracting and merging significant pathways
   if(!"empty"%in%colnames(dat)){
     dat$collection = set_name

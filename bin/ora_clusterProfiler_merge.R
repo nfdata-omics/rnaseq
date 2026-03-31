@@ -66,7 +66,7 @@ for(f in files){
   
   # Importing result table
   dat = read.delim(f, h=T)
-  
+
   # If the table is not empty, extract the significant records
   if(colnames(dat)[1] != "empty"){
     signif = dat[dat$p.adjust < fdr,]
@@ -76,7 +76,7 @@ for(f in files){
       all_sign = rbind(all_sign, signif)
     }
   }
-  
+
 }
 
 
@@ -89,7 +89,7 @@ if(!is.null(nrow(all_sign))){
   top_n = top_n[,c(1,5,8,9,14,13)]
   colnames(top_n) = c("Pathway", "gene.ratio", "p.value", "p.adjust", "minus.log.padj", "collection")
   write.table(top_n, paste(outname, "TOP_", num, suffix, sep=""), col.names=T, row.names=F, quote=F, sep="\t")
-  
+
   # Corresponding dotplot
   top_n$Pathway.num = as.factor(dim(top_n)[1]:1)
   dp = ggplot(top_n, aes(Pathway.num, minus.log.padj, color=minus.log.padj)) +
@@ -106,7 +106,7 @@ if(!is.null(nrow(all_sign))){
           legend.title = element_text(face="bold", color="black", size=14),
           panel.background = element_rect(fill="white",colour="black", linewidth=1, linetype="solid")) +
     labs(title = paste("Top ", num, " most significant pathways", sep=""), x="", y="-Log10(p.adj.value)")
-  
+
   # Saving plot
   pdf(paste(outname, "TOP_", num, substr(suffix, 1, nchar(suffix)-3), "pdf", sep=""), width=14, height=8)
   print(dp)
@@ -131,5 +131,3 @@ if(!is.null(w)){
   print(w)
 }
 sink()
-
-
