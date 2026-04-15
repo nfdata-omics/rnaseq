@@ -54,7 +54,7 @@ if(id > col_num){
 }
 
 # Importing raw counts
-counts = read.delim(raw_counts, h=T)
+counts = read.delim(raw_counts, h=T, check.names=F)
 # If gene identifiers are not unique, they will be forced to be
 if(length(unique(counts[,id]))<length(counts[,id])){
   counts[,id] = make.unique(counts[,id])
