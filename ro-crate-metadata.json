@@ -22,7 +22,7 @@
             "@id": "./",
             "@type": "Dataset",
             "creativeWorkStatus": "InProgress",
-            "datePublished": "2026-09-07T10:42:07+00:00",
+            "datePublished": "2026-09-07T10:44:28+00:00",
             "description": "# nfdata-omics/rnaseq\n\n## Introduction\n\n**nfdata-omics/rnaseq** is a bioinformatics pipeline that ...\n\n<!-- TODO nf-core:\n   Complete this sentence with a 2-3 sentence summary of what types of data the pipeline ingests, a brief overview of the\n   major pipeline sections and the types of output it produces. You're giving an overview to someone new\n   to nf-core here, in 15-20 seconds. For an example, see https://github.com/nf-core/rnaseq/blob/master/README.md#introduction\n-->\n\n<!-- TODO nf-core: Include a figure that guides the user through the major workflow steps. Many nf-core\n     workflows use the \"tube map\" design for that. See https://nf-co.re/docs/community/brand/workflow-schematics#examples for examples.   -->\n<!-- TODO nf-core: Fill in short bullet-pointed list of the default steps in the pipeline -->1. Read QC ([`FastQC`](https://www.bioinformatics.babraham.ac.uk/projects/fastqc/))2. Present QC for raw reads ([`MultiQC`](http://multiqc.info/))\n\n## Usage\n\n> [!NOTE]\n> If you are new to Nextflow and nf-core, please refer to [this page](https://nf-co.re/docs/get_started/environment_setup/overview) on how to set-up Nextflow. Make sure to [test your setup](https://nf-co.re/docs/get_started/run-your-first-pipeline) with `-profile test` before running the workflow on actual data.\n\n<!-- TODO nf-core: Describe the minimum required steps to execute the pipeline, e.g. how to prepare samplesheets.\n     Explain what rows and columns represent. For instance (please edit as appropriate):\n\nFirst, prepare a samplesheet with your input data that looks as follows:\n\n`samplesheet.csv`:\n\n```csv\nsample,fastq_1,fastq_2\nCONTROL_REP1,AEG588A1_S1_L002_R1_001.fastq.gz,AEG588A1_S1_L002_R2_001.fastq.gz\n```\n\nEach row represents a fastq file (single-end) or a pair of fastq files (paired end).\n\n-->\n\nNow, you can run the pipeline using:\n\n<!-- TODO nf-core: update the following command to include all required parameters for a minimal example -->\n\n```bash\nnextflow run nfdata-omics/rnaseq \\\n   -profile <docker/singularity/.../institute> \\\n   --input samplesheet.csv \\\n   --outdir <OUTDIR>\n```\n\n> [!WARNING]\n> Please provide pipeline parameters via the CLI or Nextflow `-params-file` option. Custom config files including those provided by the `-c` Nextflow option can be used to provide any configuration _**except for parameters**_; see [docs](https://nf-co.re/docs/running/run-pipelines#using-parameter-files).\n\n## Credits\n\nnfdata-omics/rnaseq was originally written by M. Bonfanti, C. Callierotti, G. Scotti.\n\nWe thank the following people for their extensive assistance in the development of this pipeline:\n\n<!-- TODO nf-core: If applicable, make list of people who have also contributed -->\n\n## Contributions and Support\n\nIf you would like to contribute to this pipeline, please see the [contributing guidelines](docs/CONTRIBUTING.md).\n\n## Citations\n\n<!-- TODO nf-core: Add citation for pipeline after first release. Uncomment lines below and update Zenodo doi and badge at the top of this file. -->\n<!-- If you use nfdata-omics/rnaseq for your analysis, please cite it using the following doi: [10.5281/zenodo.XXXXXX](https://doi.org/10.5281/zenodo.XXXXXX) -->\n\n<!-- TODO nf-core: Add bibliography of tools and data used in your pipeline -->\n\nAn extensive list of references for the tools used by the pipeline can be found in the [`CITATIONS.md`](CITATIONS.md) file.\n\nThis pipeline uses code and infrastructure developed and maintained by the [nf-core](https://nf-co.re) community, reused here under the [MIT license](https://github.com/nf-core/tools/blob/main/LICENSE).\n\n> **The nf-core framework for community-curated bioinformatics pipelines.**\n>\n> Philip Ewels, Alexander Peltzer, Sven Fillinger, Harshil Patel, Johannes Alneberg, Andreas Wilm, Maxime Ulysse Garcia, Paolo Di Tommaso & Sven Nahnsen.\n>\n> _Nat Biotechnol._ 2020 Feb 13. doi: [10.1038/s41587-020-0439-x](https://dx.doi.org/10.1038/s41587-020-0439-x).\n",
             "hasPart": [
                 {
@@ -93,7 +93,7 @@
             },
             "mentions": [
                 {
-                    "@id": "#b23189d6-53b6-4fad-a088-771114722fdb"
+                    "@id": "#a68952a5-1452-4eaa-b625-a262c57c3ef0"
                 }
             ],
             "name": "nfdata-omics/rnaseq"
@@ -122,17 +122,17 @@
             ],
             "contributor": [
                 {
-                    "@id": "#d46d30bc-57f5-47b9-8766-caa2eb626812"
+                    "@id": "#7c6bb349-2de7-40f2-af25-f4232c3f6060"
                 },
                 {
-                    "@id": "#cafc08e2-a6b6-4fde-8079-c5b9ccd0f106"
+                    "@id": "#2f9877eb-58ba-4169-9738-a652ed72f860"
                 },
                 {
-                    "@id": "#0f68a488-4bc5-46f0-9df1-d20919d6a58d"
+                    "@id": "#6e21f7d6-02d1-47dc-aa6c-94c2429f4dcb"
                 }
             ],
             "dateCreated": "",
-            "dateModified": "2026-09-07T12:42:07Z",
+            "dateModified": "2026-09-07T12:44:28Z",
             "dct:conformsTo": "https://bioschemas.org/profiles/ComputationalWorkflow/1.0-RELEASE/",
             "keywords": [
                 "nf-core",
@@ -173,11 +173,11 @@
             "version": "!>=25.10.4"
         },
         {
-            "@id": "#b23189d6-53b6-4fad-a088-771114722fdb",
+            "@id": "#a68952a5-1452-4eaa-b625-a262c57c3ef0",
             "@type": "TestSuite",
             "instance": [
                 {
-                    "@id": "#a9b3185d-a0d0-473a-8558-656d2311a8c3"
+                    "@id": "#19d8a17d-0c13-4157-8dc3-9bf1022faed4"
                 }
             ],
             "mainEntity": {
@@ -186,7 +186,7 @@
             "name": "Test suite for nfdata-omics/rnaseq"
         },
         {
-            "@id": "#a9b3185d-a0d0-473a-8558-656d2311a8c3",
+            "@id": "#19d8a17d-0c13-4157-8dc3-9bf1022faed4",
             "@type": "TestInstance",
             "name": "GitHub Actions workflow for testing nfdata-omics/rnaseq",
             "resource": "repos/nfdata-omics/rnaseq/actions/workflows/nf-test.yml",
@@ -305,17 +305,17 @@
             "url": "https://nf-co.re/"
         },
         {
-            "@id": "#d46d30bc-57f5-47b9-8766-caa2eb626812",
+            "@id": "#7c6bb349-2de7-40f2-af25-f4232c3f6060",
             "@type": "Person",
             "name": "M. Bonfanti"
         },
         {
-            "@id": "#cafc08e2-a6b6-4fde-8079-c5b9ccd0f106",
+            "@id": "#2f9877eb-58ba-4169-9738-a652ed72f860",
             "@type": "Person",
             "name": "C. Callierotti"
         },
         {
-            "@id": "#0f68a488-4bc5-46f0-9df1-d20919d6a58d",
+            "@id": "#6e21f7d6-02d1-47dc-aa6c-94c2429f4dcb",
             "@type": "Person",
             "name": "G. Scotti"
         }
