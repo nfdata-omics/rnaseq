@@ -1,0 +1,41 @@
+Changes in component 'nf-core/fastq_qc_trim_filter_setstrandedness'
+'subworkflows/nf-core/fastq_qc_trim_filter_setstrandedness/meta.yml' is unchanged
+Changes in 'fastq_qc_trim_filter_setstrandedness/main.nf':
+--- subworkflows/nf-core/fastq_qc_trim_filter_setstrandedness/main.nf
++++ subworkflows/nf-core/fastq_qc_trim_filter_setstrandedness/main.nf
+@@ -182,14 +182,17 @@
+     // SUBWORKFLOW: Read QC, extract UMI and trim adapters with fastp
+     //
+     if (trimmer == 'fastp') {
++        ch_filtered_reads
++            .map { meta, reads_files -> [meta, reads_files, []] }
++            .set { ch_filtered_reads_with_adapters }
++
+         FASTQ_FASTQC_UMITOOLS_FASTP (
+-            ch_filtered_reads,
++            ch_filtered_reads_with_adapters,
+             skip_fastqc,
+             with_umi,
+             skip_umi_extract,
+             umi_discard_read,
+             skip_trimming,
+-            [],
+             save_trimmed,
+             save_trimmed,
+             min_trimmed_reads
+@@ -197,7 +200,6 @@
+         ch_filtered_reads      = FASTQ_FASTQC_UMITOOLS_FASTP.out.reads
+         ch_trim_read_count     = FASTQ_FASTQC_UMITOOLS_FASTP.out.trim_read_count
+ 
+-        ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_FASTP.out.versions)
+         ch_multiqc_files = FASTQ_FASTQC_UMITOOLS_FASTP.out.fastqc_raw_zip
+             .mix(FASTQ_FASTQC_UMITOOLS_FASTP.out.fastqc_trim_zip)
+             .mix(FASTQ_FASTQC_UMITOOLS_FASTP.out.trim_json)
+
+'subworkflows/nf-core/fastq_qc_trim_filter_setstrandedness/tests/tags.yml' is unchanged
+'subworkflows/nf-core/fastq_qc_trim_filter_setstrandedness/tests/main.function.nf.test' is unchanged
+'subworkflows/nf-core/fastq_qc_trim_filter_setstrandedness/tests/nextflow.config' is unchanged
+'subworkflows/nf-core/fastq_qc_trim_filter_setstrandedness/tests/main.nf.test.snap' is unchanged
+'subworkflows/nf-core/fastq_qc_trim_filter_setstrandedness/tests/main.nf.test' is unchanged
+'subworkflows/nf-core/fastq_qc_trim_filter_setstrandedness/tests/main.function.nf.test.snap' is unchanged
+************************************************************
