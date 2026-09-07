@@ -182,14 +182,17 @@ workflow FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS {
     // SUBWORKFLOW: Read QC, extract UMI and trim adapters with fastp
     //
     if (trimmer == 'fastp') {
+        ch_filtered_reads
+            .map { meta, reads_files -> [meta, reads_files, []] }
+            .set { ch_filtered_reads_with_adapters }
+
         FASTQ_FASTQC_UMITOOLS_FASTP (
-            ch_filtered_reads,
+            ch_filtered_reads_with_adapters,
             skip_fastqc,
             with_umi,
             skip_umi_extract,
             umi_discard_read,
             skip_trimming,
-            [],
             save_trimmed,
             save_trimmed,
             min_trimmed_reads
@@ -197,7 +200,6 @@ workflow FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS {
         ch_filtered_reads      = FASTQ_FASTQC_UMITOOLS_FASTP.out.reads
         ch_trim_read_count     = FASTQ_FASTQC_UMITOOLS_FASTP.out.trim_read_count
 
-        ch_versions = ch_versions.mix(FASTQ_FASTQC_UMITOOLS_FASTP.out.versions)
         ch_multiqc_files = FASTQ_FASTQC_UMITOOLS_FASTP.out.fastqc_raw_zip
             .mix(FASTQ_FASTQC_UMITOOLS_FASTP.out.fastqc_trim_zip)
             .mix(FASTQ_FASTQC_UMITOOLS_FASTP.out.trim_json)
