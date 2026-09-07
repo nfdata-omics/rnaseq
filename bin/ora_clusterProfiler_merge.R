@@ -63,6 +63,9 @@ for(f in files){
 		outname = paste0(paste(strsplit(gsub(suffix, "", basename(f)), "\\.")[[1]][1:2], collapse="."), ".")
 		set_name = gsub(suffix, "", gsub(outname, "", basename(f)))
 	}
+	if (nchar(set_name) > 31) {
+		set_name = substr(set_name, 1, 31)
+	}
 
   # Importing result table
   dat = read.delim(f, h=T)
