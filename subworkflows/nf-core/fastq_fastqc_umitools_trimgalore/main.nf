@@ -56,8 +56,8 @@ workflow FASTQ_FASTQC_UMITOOLS_TRIMGALORE {
                     .out
                     .reads
                     .map {
-                        meta, reads ->
-                            meta.single_end ? [ meta, reads ] : [ meta + ['single_end': true], reads[umi_discard_read % 2] ]
+                        meta, extracted_reads ->
+                            meta.single_end ? [ meta, extracted_reads ] : [ meta + ['single_end': true], extracted_reads[umi_discard_read % 2] ]
                     }
                     .set { umi_reads }
             }
@@ -85,23 +85,23 @@ workflow FASTQ_FASTQC_UMITOOLS_TRIMGALORE {
             .reads
             .join(trim_log, remainder: true)
             .map {
-                meta, reads, trim_log ->
-                    if (trim_log) {
-                        num_reads = getTrimGaloreReadsAfterFiltering(meta.single_end ? trim_log : trim_log[-1])
-                        [ meta, reads, num_reads ]
+                meta, trimmed_reads, trim_galore_log ->
+                    if (trim_galore_log) {
+                        def read_count = getTrimGaloreReadsAfterFiltering(meta.single_end ? trim_galore_log : trim_galore_log[-1])
+                        [ meta, trimmed_reads, read_count ]
                     } else {
-                        [ meta, reads, min_trimmed_reads.toFloat() + 1 ]
+                        [ meta, trimmed_reads, min_trimmed_reads.toFloat() + 1 ]
                     }
             }
             .set { ch_num_trimmed_reads }
 
         ch_num_trimmed_reads
-            .filter { meta, reads, num_reads -> num_reads >= min_trimmed_reads.toFloat() }
-            .map { meta, reads, num_reads -> [ meta, reads ] }
+            .filter { meta, trimmed_reads, read_count -> read_count >= min_trimmed_reads.toFloat() }
+            .map { meta, trimmed_reads, read_count -> [ meta, trimmed_reads ] }
             .set { trim_reads }
 
         ch_num_trimmed_reads
-            .map { meta, reads, num_reads -> [ meta, num_reads ] }
+            .map { meta, trimmed_reads, read_count -> [ meta, read_count ] }
             .set { trim_read_count }
     }
 

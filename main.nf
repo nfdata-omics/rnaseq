@@ -51,7 +51,7 @@ workflow NFDATAOMICS_RNASEQ {
 
     main:
 
-    ch_versions = Channel.empty()
+    ch_versions = channel.empty()
 
     //
     // SUBWORKFLOW: Prepare reference files
@@ -82,7 +82,11 @@ workflow NFDATAOMICS_RNASEQ {
         PREPARE_REFERENCES.out.star_index,
         PREPARE_REFERENCES.out.salmon_index,
         PREPARE_REFERENCES.out.refflat,
-        ch_versions
+        ch_versions,
+        params.multiqc_config,
+        params.multiqc_logo,
+        params.multiqc_methods_description,
+        params.outdir
     )
     ch_versions = ch_versions.mix(RNASEQ.out.versions)
 
@@ -134,7 +138,6 @@ workflow {
         params.plaintext_email,
         params.outdir,
         params.monochrome_logs,
-        params.hook_url,
         NFDATAOMICS_RNASEQ.out.multiqc_report
     )
 }

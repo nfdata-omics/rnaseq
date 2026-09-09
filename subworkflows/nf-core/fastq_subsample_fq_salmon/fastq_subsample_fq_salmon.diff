@@ -1,0 +1,28 @@
+Changes in component 'nf-core/fastq_subsample_fq_salmon'
+'subworkflows/nf-core/fastq_subsample_fq_salmon/meta.yml' is unchanged
+Changes in 'fastq_subsample_fq_salmon/main.nf':
+--- subworkflows/nf-core/fastq_subsample_fq_salmon/main.nf
++++ subworkflows/nf-core/fastq_subsample_fq_salmon/main.nf
+@@ -18,7 +18,7 @@
+ 
+     main:
+ 
+-    ch_versions = Channel.empty()
++    ch_versions = channel.empty()
+ 
+     //
+     // Create Salmon index if required
+@@ -40,7 +40,6 @@
+     def lib_type = 'A'
+     def alignment_mode = false
+     SALMON_QUANT ( FQ_SUBSAMPLE.out.fastq, ch_index, ch_gtf, ch_transcript_fasta, alignment_mode, lib_type )
+-    ch_versions = ch_versions.mix(SALMON_QUANT.out.versions.first())
+ 
+     emit:
+     index             = ch_index                           // channel: [ index ]
+
+'subworkflows/nf-core/fastq_subsample_fq_salmon/tests/tags.yml' is unchanged
+'subworkflows/nf-core/fastq_subsample_fq_salmon/tests/nextflow.config' is unchanged
+'subworkflows/nf-core/fastq_subsample_fq_salmon/tests/main.nf.test.snap' is unchanged
+'subworkflows/nf-core/fastq_subsample_fq_salmon/tests/main.nf.test' is unchanged
+************************************************************

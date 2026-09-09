@@ -13,7 +13,7 @@ lint:
     - docs/images/nf-core-rnaseq_logo_light.png
     - docs/images/nf-core-rnaseq_logo_dark.png
     - .github/ISSUE_TEMPLATE/bug_report.yml
-  multiqc_config: False
+  multiqc_config: false
   nextflow_config:
     - manifest.name
     - manifest.homePage
@@ -23,7 +23,7 @@ lint:
     - validation.summary.afterText
   readme:
     - nextflow_badge
-nf_core_version: 3.5.2
+nf_core_version: 4.1.0
 repository_type: pipeline
 template:
   author: M. Bonfanti, C. Callierotti, G. Scotti
