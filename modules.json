@@ -7,7 +7,7 @@
                 "nf-core": {
                     "bbmap/bbsplit": {
                         "branch": "master",
-                        "git_sha": "a1abf90966a2a4016d3c3e41e228bfcbd4811ccc",
+                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
                         "installed_by": ["fastq_qc_trim_filter_setstrandedness"]
                     },
                     "cat/fastq": {
@@ -73,7 +73,7 @@
                     },
                     "salmon/quant": {
                         "branch": "master",
-                        "git_sha": "49f4e50534fe4b64101e62ea41d5dc43b1324358",
+                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
                         "installed_by": ["fastq_subsample_fq_salmon"]
                     },
                     "samtools/flagstat": {
@@ -108,7 +108,7 @@
                     },
                     "star/align": {
                         "branch": "master",
-                        "git_sha": "a5ad53288c79fa52c5ae708c317e09ec2dd149ab",
+                        "git_sha": "6d46786420b4d7bc88eba026eb389c0c5535d120",
                         "installed_by": ["modules"]
                     },
                     "star/genomegenerate": {
@@ -163,7 +163,8 @@
                     "fastq_fastqc_umitools_trimgalore": {
                         "branch": "master",
                         "git_sha": "4c2d06a5e79abf08ba7f04c58e39c7dad75f094d",
-                        "installed_by": ["fastq_qc_trim_filter_setstrandedness"]
+                        "installed_by": ["fastq_qc_trim_filter_setstrandedness"],
+                        "patch": "subworkflows/nf-core/fastq_fastqc_umitools_trimgalore/fastq_fastqc_umitools_trimgalore.diff"
                     },
                     "fastq_qc_trim_filter_setstrandedness": {
                         "branch": "master",
@@ -174,7 +175,8 @@
                     "fastq_subsample_fq_salmon": {
                         "branch": "master",
                         "git_sha": "a1abf90966a2a4016d3c3e41e228bfcbd4811ccc",
-                        "installed_by": ["fastq_qc_trim_filter_setstrandedness"]
+                        "installed_by": ["fastq_qc_trim_filter_setstrandedness"],
+                        "patch": "subworkflows/nf-core/fastq_subsample_fq_salmon/fastq_subsample_fq_salmon.diff"
                     },
                     "utils_nextflow_pipeline": {
                         "branch": "master",

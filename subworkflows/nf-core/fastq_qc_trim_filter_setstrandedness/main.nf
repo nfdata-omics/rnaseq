@@ -1,5 +1,3 @@
-import groovy.json.JsonSlurper
-
 include { BBMAP_BBSPLIT                      } from '../../../modules/nf-core/bbmap/bbsplit'
 include { CAT_FASTQ                          } from '../../../modules/nf-core/cat/fastq/main'
 include { SORTMERNA                          } from '../../../modules/nf-core/sortmerna/main'
@@ -12,8 +10,6 @@ include { FQ_LINT as FQ_LINT_AFTER_SORTMERNA } from '../../../modules/nf-core/fq
 include { FASTQ_SUBSAMPLE_FQ_SALMON          } from '../fastq_subsample_fq_salmon'
 include { FASTQ_FASTQC_UMITOOLS_TRIMGALORE   } from '../fastq_fastqc_umitools_trimgalore'
 include { FASTQ_FASTQC_UMITOOLS_FASTP        } from '../fastq_fastqc_umitools_fastp'
-
-def pass_trimmed_reads = [:]
 
 //
 // Function to determine library type by comparing type counts.
@@ -52,7 +48,7 @@ def calculateStrandedness(forwardFragments, reverseFragments, unstrandedFragment
 //
 def getSalmonInferredStrandedness(json_file, stranded_threshold = 0.8, unstranded_threshold = 0.1) {
     // Parse the JSON content of the file
-    def libCounts = new JsonSlurper().parseText(json_file.text)
+    def libCounts = new groovy.json.JsonSlurper().parseText(json_file.text)
 
     // Calculate the counts for forward and reverse strand fragments
     def forwardKeys = ['SF', 'ISF', 'MSF', 'OSF']
@@ -213,9 +209,7 @@ workflow FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS {
     ch_trim_read_count
         .map {
             meta, num_reads ->
-                pass_trimmed_reads[meta.id] = true
                 if (num_reads <= min_trimmed_reads.toFloat()) {
-                    pass_trimmed_reads[meta.id] = false
                     return [ "$meta.id\t$num_reads" ]
                 }
         }
@@ -255,8 +249,6 @@ workflow FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS {
 
         BBMAP_BBSPLIT.out.primary_fastq
             .set { ch_filtered_reads }
-
-        ch_versions = ch_versions.mix(BBMAP_BBSPLIT.out.versions.first())
 
         if(!skip_linting) {
             FQ_LINT_AFTER_BBSPLIT (
@@ -345,8 +337,8 @@ workflow FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS {
         .join(ch_strand_fastq.auto_strand)
         .map {
             meta, json, reads ->
-                def salmon_strand_analysis = getSalmonInferredStrandedness(json, stranded_threshold=stranded_threshold, unstranded_threshold=unstranded_threshold)
-                strandedness = salmon_strand_analysis.inferred_strandedness
+                def salmon_strand_analysis = getSalmonInferredStrandedness(json, stranded_threshold, unstranded_threshold)
+                def strandedness = salmon_strand_analysis.inferred_strandedness
                 if (strandedness == 'undetermined') {
                     strandedness = 'unstranded'
                 }

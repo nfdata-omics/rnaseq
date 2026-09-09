@@ -49,7 +49,7 @@ workflow RNASEQ {
     ch_star_index        // channel: path(star/index/)
     ch_salmon_index      // channel: path(salmon/index/)
     ch_ref_flat          // channel: path(refFlat.txt)
-    ch_versions          // channel: [ path(versions.yml) ]
+    input_versions       // channel: [ path(versions.yml) ]
     multiqc_config
     multiqc_logo
     multiqc_methods_description
@@ -57,7 +57,7 @@ workflow RNASEQ {
 
     main:
 
-    def ch_versions = channel.empty()
+    def ch_versions = input_versions
     def ch_multiqc_files = channel.empty()
 
     // Header files for MultiQC
@@ -123,8 +123,6 @@ workflow RNASEQ {
         ch_star_index.map { [ [:], it ] },
         ch_gtf.map { [ [:], it ] },
         false,
-        "",
-        ""
     )
     ch_genome_bam          = STAR_ALIGN.out.bam
     ch_transcriptome_bam   = STAR_ALIGN.out.bam_transcript
@@ -132,7 +130,6 @@ workflow RNASEQ {
     ch_unaligned_sequences = STAR_ALIGN.out.fastq
 
     ch_multiqc_files = ch_multiqc_files.mix(ch_star_log.collect{it[1]})
-    ch_versions = ch_versions.mix(STAR_ALIGN.out.versions.first())
 
     //
     // Filter channels to get samples that passed STAR minimum mapping percentage
@@ -282,28 +279,28 @@ workflow RNASEQ {
         ch_fasta,
         []
     )
-    ch_multiqc_files = ch_multiqc_files.mix(PICARD_COLLECTRNASEQMETRICS.out.metrics.collect{it[1]})
+    ch_multiqc_files = ch_multiqc_files.mix(PICARD_COLLECTRNASEQMETRICS.out.metrics.collect { metric -> metric[1] })
     ch_versions = ch_versions.mix(PICARD_COLLECTRNASEQMETRICS.out.versions)
 
     //
     // DOWNSTREAM ANALYSIS OF COUNT MATRIX
     //
 
-    ch_count_matrix = Channel.empty()
+    ch_count_matrix = channel.empty()
     if ( params.counts ) {
         ch_count_matrix = counts
         gene_column_nr = params.gene_column_nr
         gene_id_index = params.gene_id_index
     } else {
         ch_count_matrix = JOIN_FEATURECOUNTS_MATRIX.out.joined_counts
-        gene_column_nr = Channel.of("7")
+        gene_column_nr = channel.of("7")
             .combine(GENEID_TO_GENENAME.out.gene_names)
-            .map { it[0] }
+            .map { gene_name -> gene_name[0] }
             .ifEmpty("6")
             .first()
-        gene_id_index = Channel.of("7")
+        gene_id_index = channel.of("7")
             .combine(GENEID_TO_GENENAME.out.gene_names)
-            .map { it[0] }
+            .map { gene_name -> gene_name[0] }
             .ifEmpty("1")
             .first()
     }
@@ -366,8 +363,8 @@ workflow RNASEQ {
 
     // DEA AND FUNCTIONAL
 
-    ch_comparisons = params.comparisons ? Channel.fromList(params.comparisons.split(',').flatten()) : Channel.empty()
-    ch_genesets    = params.genesets    ? Channel.fromList(params.genesets.split(',').flatten())    : Channel.empty()
+    ch_comparisons = params.comparisons ? channel.fromList(params.comparisons.split(',').flatten()) : channel.empty()
+    ch_genesets    = params.genesets    ? channel.fromList(params.genesets.split(',').flatten())    : channel.empty()
 
     DIFFERENTIAL_EXPRESSION(
         ch_counts_split,

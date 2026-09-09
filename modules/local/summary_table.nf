@@ -40,7 +40,7 @@ process SUMMARY_TABLE {
 
     stub:
     """
-    touch "dea_${$meta.id}_summary.txt"
+    touch "dea_${meta.id}_summary.txt"
 
     cat <<-END_VERSIONS > versions.yml
     "${task.process}":
