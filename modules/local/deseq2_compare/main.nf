@@ -9,11 +9,12 @@ process DESEQ2_COMPARE {
     val fdr_threshold
 
     output:
-    tuple val(meta), path("deseq2_toptable.*.txt"), emit: dge
-    tuple val(meta), path("deseq2_summary.*.txt") , emit: summary
-    tuple val(meta), path("pvalue_hist.*.pdf")    , emit: hist_pval
-    tuple val(meta), path("volcano.*.pdf")        , emit: volcano
-    path "versions.yml"                           , emit: versions
+    tuple val(meta), path("deseq2_toptable.*.txt") , emit: dge
+    tuple val(meta), path("deseq2_toptable.*.xlsx"), emit: dge_xlsx
+    tuple val(meta), path("deseq2_summary.*.txt")  , emit: summary
+    tuple val(meta), path("pvalue_hist.*.pdf")     , emit: hist_pval
+    tuple val(meta), path("volcano.*.pdf")         , emit: volcano
+    path "versions.yml"                            , emit: versions
 
     when:
     task.ext.when == null || task.ext.when
@@ -42,6 +43,7 @@ process DESEQ2_COMPARE {
     stub:
     """
     touch deseq2_toptable.${meta.id}_${comparison}.txt
+    touch deseq2_toptable.${meta.id}_${comparison}.xlsx
     touch deseq2_summary.${meta.id}_${comparison}.txt
     touch pvalue_hist.${meta.id}_${comparison}.pdf
     touch volcano.${meta.id}_${comparison}.pdf
