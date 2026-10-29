@@ -27,6 +27,26 @@ def join_featurecounts_matrix(count_files, output_file, genemeta_file=None):
     # Read the gene annotation from the first file
     gene_annotation = pd.read_csv(count_files[0], sep='\t', comment='#', index_col=0, usecols=[0, 1, 2, 3, 4, 5])
 
+    # Collapse exon annotations to gene boundaries, preserving the exonic Length.
+    for gene_id, annotation in gene_annotation.iterrows():
+        for column in ('Chr', 'Strand'):
+            values = str(annotation[column]).split(';')
+            if pd.isna(annotation[column]) or any(not value.strip() for value in values) or len(set(values)) != 1:
+                raise ValueError(
+                    f"Gene {gene_id!r} must have exactly one distinct {column} value; "
+                    f"found {annotation[column]!r}."
+                )
+            gene_annotation.at[gene_id, column] = values[0]
+
+        for column, aggregate in (('Start', min), ('End', max)):
+            try:
+                coordinates = [int(value) for value in str(annotation[column]).split(';')]
+            except (ValueError, TypeError) as error:
+                raise ValueError(
+                    f"Gene {gene_id!r} has invalid {column} coordinates: {annotation[column]!r}."
+                ) from error
+            gene_annotation.at[gene_id, column] = aggregate(coordinates)
+
     # If a gene metadata file is provided, merge it with the basic gene annotation
     merged_df = gene_annotation
     if genemeta_file:
