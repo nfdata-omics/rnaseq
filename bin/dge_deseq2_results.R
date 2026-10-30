@@ -4,6 +4,7 @@ suppressMessages(library("optparse"))
 suppressMessages(library("DESeq2"))
 suppressMessages(library("stringr"))
 suppressMessages(library("ggplot2"))
+suppressMessages(library("openxlsx"))
 
 ### Script to fit a DGE model using DESeq2
 option_list <- list(
@@ -130,7 +131,7 @@ if(sum(toptable[,6]==rownames(toptable)) == nrow(toptable)) {toptable = toptable
 toptable = cbind(rownames(toptable), toptable)
 colnames(toptable)[1] = "gene_name"
 write.table(toptable, paste("deseq2_toptable.", outname, suffix, ".txt", sep=""), row.names=F, col.names=T, quote=F, sep="\t")
-
+write.xlsx(toptable, paste("deseq2_toptable.", outname, suffix, ".xlsx", sep=""), rowNames=F, colNames=T)
 
 
 # Histogram of nominal pvalues
