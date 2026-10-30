@@ -67,10 +67,23 @@ def load_and_validate(expression_matrix_path, gene, metadata_path):
     # Check sample overlap
     meta_samples = set(meta.index)
     expr_samples = set(expr.columns)
-    missing = meta_samples - expr_samples
-    if missing:
-        raise ValueError(
-            f"The following samples from the metadata are not present in the expression matrix: {missing}"
+    
+    # Samples in metadata but missing from expression matrix: warn and proceed
+    only_in_meta = meta_samples - expr_samples
+    if only_in_meta:
+        warnings.warn(
+            f"The following samples are in the metadata but not in the expression matrix "
+            f"and will be ignored: {only_in_meta}",
+            UserWarning
+        )
+
+    # Samples in expression matrix but missing from metadata: warn and proceed
+    only_in_expr = expr_samples - meta_samples
+    if only_in_expr:
+        warnings.warn(
+            f"The following columns are in the expression matrix but not in the metadata "
+            f"and will be ignored: {only_in_expr}.",
+            UserWarning
         )
 
     # Restrict to metadata samples (ignore extra expression matrix columns)
