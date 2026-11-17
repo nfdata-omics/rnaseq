@@ -159,7 +159,7 @@ module_order:
       anchor: "dea"
       name: "Differential Expression Analysis"
       info: |
-        Differential Gene Expression (DGE) analysis was performed using the R package DESeq2, with no assumption about prior distribution (option betaPrior=FALSE) and applying independent filtering to the result.<br>
+        Differential Gene Expression (DGE) analysis was performed using the R package DESeq2, with option betaPrior = FALSE and independent filtering enabled.<br>
         Independent filtering is a strategy that excludes genes with very low average expression from the calculation of adjusted p-values. By performing the p-value adjustment on a reduced set of genes, this approach increases the overall statistical power.<br>
         Only genes identified as expressed in each comparison were tested. Significance was defined setting a threshold of False Discovery Rate < 0.05.<br>
         For each performed comparison, a table with complete results is produced. In each table, for each gene is reported:<br>

@@ -103,7 +103,7 @@ if(!is.null(nrow(all_sign))){
           plot.subtitle = element_text(color="black", size=16, face="italic"),
           axis.text.x = element_text(angle=90, color='black', size=14, hjust=1, family="mono"),
           axis.title.x = element_text(face="bold", color="black", size=14),
-          axis.text.y = element_text(angle=0, color='black', size=14, family="mono"),
+          axis.text.y = element_text(angle=0, color='black', size=10, family="mono"),
           axis.title.y = element_text(face="bold", color="black", size=14),
           legend.text = element_text(color="black", size=12),
           legend.title = element_text(face="bold", color="black", size=14),
