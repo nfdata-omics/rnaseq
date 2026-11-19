@@ -61,224 +61,230 @@ workflow RNASEQ {
     ch_clustering_header_multiqc    = file("$projectDir/assets/multiqc/deseq2_clustering_header.txt", checkIfExists: true)
     ch_biotypes_header_multiqc      = file("$projectDir/assets/multiqc/biotypes_header.txt", checkIfExists: true)
 
-    //
-    // Create channel from input file provided through params.input
-    //
-    ch_samplesheet
-        .filter { it[0].data_type == "fastq" }
-        .map { meta, fastqs, _bam -> [meta, fastqs] }
-        .set { ch_fastq }
+    ch_trim_status = Channel.empty()
+    ch_map_status = Channel.empty()
 
-    //
-    // Run RNA-seq FASTQ preprocessing subworkflow
-    //
+    if (!params.counts) {
+        //
+        // Create channel from input file provided through params.input
+        //
+        ch_samplesheet
+            .filter { it[0].data_type == "fastq" }
+            .map { meta, fastqs, _bam -> [meta, fastqs] }
+            .set { ch_fastq }
 
-    FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS (
-        ch_fastq,
-        ch_fasta,
-        ch_transcript_fasta,
-        ch_gtf,
-        ch_salmon_index,
-        "",
-        "",
-        "",
-        true,
-        false,
-        params.skip_trimming,
-        true,
-        false,
-        false,
-        params.trimmer,
-        params.min_trimmed_reads,
-        params.save_trimmed,
-        false,
-        false,
-        0,
-        params.stranded_threshold,
-        params.unstranded_threshold,
-        false
-    )
+        //
+        // Run RNA-seq FASTQ preprocessing subworkflow
+        //
 
-    ch_multiqc_files                  = ch_multiqc_files.mix(FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS.out.multiqc_files)
-    ch_versions                       = ch_versions.mix(FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS.out.versions)
-    ch_trim_read_count                = FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS.out.trim_read_count
+        FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS (
+            ch_fastq,
+            ch_fasta,
+            ch_transcript_fasta,
+            ch_gtf,
+            ch_salmon_index,
+            "",
+            "",
+            "",
+            true,
+            false,
+            params.skip_trimming,
+            true,
+            false,
+            false,
+            params.trimmer,
+            params.min_trimmed_reads,
+            params.save_trimmed,
+            false,
+            false,
+            0,
+            params.stranded_threshold,
+            params.unstranded_threshold,
+            false
+        )
 
-    ch_trim_status = ch_trim_read_count
-        .map {
-            meta, num_reads ->
-                return [ meta.id, num_reads > params.min_trimmed_reads.toFloat() ]
-        }
+        ch_multiqc_files                  = ch_multiqc_files.mix(FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS.out.multiqc_files)
+        ch_versions                       = ch_versions.mix(FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS.out.versions)
+        ch_trim_read_count                = FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS.out.trim_read_count
 
-    //
-    // ALIGNMENT WITH STAR
-    //
+        ch_trim_status = ch_trim_read_count
+            .map {
+                meta, num_reads ->
+                    return [ meta.id, num_reads > params.min_trimmed_reads.toFloat() ]
+            }
 
-    STAR_ALIGN (
-        FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS.out.reads,
-        ch_star_index.map { [ [:], it ] },
-        ch_gtf.map { [ [:], it ] },
-        false,
-        "",
-        ""
-    )
-    ch_genome_bam          = STAR_ALIGN.out.bam
-    ch_transcriptome_bam   = STAR_ALIGN.out.bam_transcript
-    ch_star_log            = STAR_ALIGN.out.log_final
-    ch_unaligned_sequences = STAR_ALIGN.out.fastq
+        //
+        // ALIGNMENT WITH STAR
+        //
 
-    ch_multiqc_files = ch_multiqc_files.mix(ch_star_log.collect{it[1]})
-    ch_versions = ch_versions.mix(STAR_ALIGN.out.versions.first())
+        STAR_ALIGN (
+            FASTQ_QC_TRIM_FILTER_SETSTRANDEDNESS.out.reads,
+            ch_star_index.map { [ [:], it ] },
+            ch_gtf.map { [ [:], it ] },
+            false,
+            "",
+            ""
+        )
+        ch_genome_bam          = STAR_ALIGN.out.bam
+        ch_transcriptome_bam   = STAR_ALIGN.out.bam_transcript
+        ch_star_log            = STAR_ALIGN.out.log_final
+        ch_unaligned_sequences = STAR_ALIGN.out.fastq
 
-    //
-    // Filter channels to get samples that passed STAR minimum mapping percentage
-    //
-    ch_star_log
-        .map { meta, align_log -> [ meta ] + getStarPercentMapped(params, align_log) }
-        .set { ch_percent_mapped }
+        ch_multiqc_files = ch_multiqc_files.mix(ch_star_log.collect{it[1]})
+        ch_versions = ch_versions.mix(STAR_ALIGN.out.versions.first())
 
-    ch_map_status = ch_percent_mapped
-        .map {
-            meta, _mapped, pass ->
-                return [ meta.id, pass ]
-        }
+        //
+        // Filter channels to get samples that passed STAR minimum mapping percentage
+        //
+        ch_star_log
+            .map { meta, align_log -> [ meta ] + getStarPercentMapped(params, align_log) }
+            .set { ch_percent_mapped }
 
-    ch_genome_bam
-        .join(ch_percent_mapped, by: [0])
-        .map { meta, ofile, _mapped, pass -> if (pass) [ meta, ofile ] }
-        .set { ch_genome_bam }
+        ch_map_status = ch_percent_mapped
+            .map {
+                meta, _mapped, pass ->
+                    return [ meta.id, pass ]
+            }
 
-    ch_percent_mapped
-        .branch { meta, mapped, pass ->
-            pass: pass
-                return [ "$meta.id\t$mapped" ]
-            fail: !pass
-                return [ "$meta.id\t$mapped" ]
-        }
-        .set { ch_pass_fail_mapped }
+        ch_genome_bam
+            .join(ch_percent_mapped, by: [0])
+            .map { meta, ofile, _mapped, pass -> if (pass) [ meta, ofile ] }
+            .set { ch_genome_bam }
 
-    ch_pass_fail_mapped
-        .fail
-        .collect()
-        .map {
-            tsv_data ->
-                def header = ["Sample", "STAR uniquely mapped reads (%)"]
-                sample_status_header_multiqc.text + multiqcTsvFromList(tsv_data, header)
-        }
-        .set { ch_fail_mapping_multiqc }
-    ch_multiqc_files = ch_multiqc_files.mix(ch_fail_mapping_multiqc.collectFile(name: 'fail_mapped_samples_mqc.tsv'))
+        ch_percent_mapped
+            .branch { meta, mapped, pass ->
+                pass: pass
+                    return [ "$meta.id\t$mapped" ]
+                fail: !pass
+                    return [ "$meta.id\t$mapped" ]
+            }
+            .set { ch_pass_fail_mapped }
 
-    //
-    // ADD BAM FILES FROM PREVIOUS ALIGNMENT DIRECTLY FROM SAMPLESHEET
-    //
+        ch_pass_fail_mapped
+            .fail
+            .collect()
+            .map {
+                tsv_data ->
+                    def header = ["Sample", "STAR uniquely mapped reads (%)"]
+                    sample_status_header_multiqc.text + multiqcTsvFromList(tsv_data, header)
+            }
+            .set { ch_fail_mapping_multiqc }
+        ch_multiqc_files = ch_multiqc_files.mix(ch_fail_mapping_multiqc.collectFile(name: 'fail_mapped_samples_mqc.tsv'))
 
-    ch_samplesheet
-        .filter{ it[0].data_type == "bam" }
-        .map {
-            meta, _fastq1s, _fastq2s, bams ->
-                return [ meta, bams ]
-        }
-        .mix ( ch_genome_bam )
-        .set { ch_genome_bam }
+        //
+        // ADD BAM FILES FROM PREVIOUS ALIGNMENT DIRECTLY FROM SAMPLESHEET
+        //
 
-    //
-    // MODULE: Sort BAM files
-    //
+        ch_samplesheet
+            .filter{ it[0].data_type == "bam" }
+            .map {
+                meta, _fastq1s, _fastq2s, bams ->
+                    return [ meta, bams ]
+            }
+            .mix ( ch_genome_bam )
+            .set { ch_genome_bam }
 
-    SAMTOOLS_SORT ( ch_genome_bam, ch_fasta.map { [ [:], it ] } )
-    ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions.first())
+        //
+        // MODULE: Sort BAM files
+        //
 
-    //
-    // SUBWORKFLOW: Mark duplicate reads
-    //
+        SAMTOOLS_SORT ( ch_genome_bam, ch_fasta.map { [ [:], it ] } )
+        ch_versions = ch_versions.mix(SAMTOOLS_SORT.out.versions.first())
 
-    BAM_MARKDUPLICATES_PICARD (
-        SAMTOOLS_SORT.out.bam,
-        ch_fasta.map { [ [:], it ] },
-        ch_fai.map { [ [:], it ] }
-    )
-    ch_genome_bam       = BAM_MARKDUPLICATES_PICARD.out.bam
-    ch_genome_bam_index = BAM_MARKDUPLICATES_PICARD.out.bai
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.stats.collect{it[1]})
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.flagstat.collect{it[1]})
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.idxstats.collect{it[1]})
-    ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.metrics.collect{it[1]})
+        //
+        // SUBWORKFLOW: Mark duplicate reads
+        //
 
-    ch_versions = ch_versions.mix(BAM_MARKDUPLICATES_PICARD.out.versions)
+        BAM_MARKDUPLICATES_PICARD (
+            SAMTOOLS_SORT.out.bam,
+            ch_fasta.map { [ [:], it ] },
+            ch_fai.map { [ [:], it ] }
+        )
+        ch_genome_bam       = BAM_MARKDUPLICATES_PICARD.out.bam
+        ch_genome_bam_index = BAM_MARKDUPLICATES_PICARD.out.bai
+        ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.stats.collect{it[1]})
+        ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.flagstat.collect{it[1]})
+        ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.idxstats.collect{it[1]})
+        ch_multiqc_files = ch_multiqc_files.mix(BAM_MARKDUPLICATES_PICARD.out.metrics.collect{it[1]})
 
-    //
-    // MODULE: gene counts using featureCounts
-    //
+        ch_versions = ch_versions.mix(BAM_MARKDUPLICATES_PICARD.out.versions)
 
-    ch_genome_bam
-        .combine(ch_gtf)
-        .set { ch_featurecounts }
+        //
+        // MODULE: gene counts using featureCounts
+        //
 
-    SUBREAD_FEATURECOUNTS_GENES(
-        ch_featurecounts
-    )
-    ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_GENES.out.versions.first())
-    ch_multiqc_files = ch_multiqc_files.mix(SUBREAD_FEATURECOUNTS_GENES.out.summary.collect{it[1]})
+        ch_genome_bam
+            .combine(ch_gtf)
+            .set { ch_featurecounts }
 
-    GENEID_TO_GENENAME(
-        ch_gtf,
-        params.featurecounts_group_type,
-        params.gene_name
-    )
-    ch_versions = ch_versions.mix(GENEID_TO_GENENAME.out.versions)
+        SUBREAD_FEATURECOUNTS_GENES(
+            ch_featurecounts
+        )
+        ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_GENES.out.versions.first())
+        ch_multiqc_files = ch_multiqc_files.mix(SUBREAD_FEATURECOUNTS_GENES.out.summary.collect{it[1]})
 
-    // Check if gene names were found in GTF file, if not use NO_FILE dummy file
-    gene_metadata = GENEID_TO_GENENAME.out.gene_names.ifEmpty(file("$projectDir/assets/NO_FILE", checkIfExists:true))
+        GENEID_TO_GENENAME(
+            ch_gtf,
+            params.featurecounts_group_type,
+            params.gene_name
+        )
+        ch_versions = ch_versions.mix(GENEID_TO_GENENAME.out.versions)
 
-    SUBREAD_FEATURECOUNTS_GENES.out.counts
-        .map{ it -> it[1] }
-        .collect()
-        .set { ch_sample_counts }
+        // Check if gene names were found in GTF file, if not use NO_FILE dummy file
+        gene_metadata = GENEID_TO_GENENAME.out.gene_names.ifEmpty(file("$projectDir/assets/NO_FILE", checkIfExists:true))
 
-    JOIN_FEATURECOUNTS_MATRIX(
-        ch_sample_counts,
-        gene_metadata
-    )
+        SUBREAD_FEATURECOUNTS_GENES.out.counts
+            .map{ it -> it[1] }
+            .collect()
+            .set { ch_sample_counts }
 
-    //
-    // MODULE: Feature biotype QC using featureCounts
-    //
+        JOIN_FEATURECOUNTS_MATRIX(
+            ch_sample_counts,
+            gene_metadata
+        )
 
-    ch_gtf
-        .map { biotypeInGtf(it, params.featurecounts_biotype) }
-        .set { biotype_in_gtf }
+        //
+        // MODULE: Feature biotype QC using featureCounts
+        //
 
-    // Prevent any samples from running if GTF file doesn't have a valid biotype
-    ch_genome_bam
-        .combine(ch_gtf)
-        .combine(biotype_in_gtf)
-        .filter { it[-1] }
-        .map { it[0..<it.size()-1] }
-        .set { ch_featurecounts }
+        ch_gtf
+            .map { biotypeInGtf(it, params.featurecounts_biotype) }
+            .set { biotype_in_gtf }
 
-    SUBREAD_FEATURECOUNTS_BIOTYPES (
-        ch_featurecounts
-    )
-    ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_BIOTYPES.out.versions.first())
+        // Prevent any samples from running if GTF file doesn't have a valid biotype
+        ch_genome_bam
+            .combine(ch_gtf)
+            .combine(biotype_in_gtf)
+            .filter { it[-1] }
+            .map { it[0..<it.size()-1] }
+            .set { ch_featurecounts }
 
-    MULTIQC_CUSTOM_BIOTYPE (
-        SUBREAD_FEATURECOUNTS_BIOTYPES.out.counts,
-        ch_biotypes_header_multiqc
-    )
-    ch_multiqc_files = ch_multiqc_files.mix(MULTIQC_CUSTOM_BIOTYPE.out.tsv.collect{it[1]})
-    ch_versions = ch_versions.mix(MULTIQC_CUSTOM_BIOTYPE.out.versions.first())
+        SUBREAD_FEATURECOUNTS_BIOTYPES (
+            ch_featurecounts
+        )
+        ch_versions = ch_versions.mix(SUBREAD_FEATURECOUNTS_BIOTYPES.out.versions.first())
 
-    //
-    // PICARD_COLLECTRNASEQMETRICS
-    //
+        MULTIQC_CUSTOM_BIOTYPE (
+            SUBREAD_FEATURECOUNTS_BIOTYPES.out.counts,
+            ch_biotypes_header_multiqc
+        )
+        ch_multiqc_files = ch_multiqc_files.mix(MULTIQC_CUSTOM_BIOTYPE.out.tsv.collect{it[1]})
+        ch_versions = ch_versions.mix(MULTIQC_CUSTOM_BIOTYPE.out.versions.first())
 
-    PICARD_COLLECTRNASEQMETRICS(
-        ch_genome_bam,
-        ch_ref_flat,
-        ch_fasta,
-        []
-    )
-    ch_multiqc_files = ch_multiqc_files.mix(PICARD_COLLECTRNASEQMETRICS.out.metrics.collect{it[1]})
-    ch_versions = ch_versions.mix(PICARD_COLLECTRNASEQMETRICS.out.versions)
+        //
+        // PICARD_COLLECTRNASEQMETRICS
+        //
+
+        PICARD_COLLECTRNASEQMETRICS(
+            ch_genome_bam,
+            ch_ref_flat,
+            ch_fasta,
+            []
+        )
+        ch_multiqc_files = ch_multiqc_files.mix(PICARD_COLLECTRNASEQMETRICS.out.metrics.collect{it[1]})
+        ch_versions = ch_versions.mix(PICARD_COLLECTRNASEQMETRICS.out.versions)
+
+    }
 
     //
     // DOWNSTREAM ANALYSIS OF COUNT MATRIX

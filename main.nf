@@ -56,15 +56,37 @@ workflow NFDATAOMICS_RNASEQ {
     //
     // SUBWORKFLOW: Prepare reference files
     //
-    PREPARE_REFERENCES(
-        params.fasta,
-        params.gtf,
-        params.transcript_fasta,
-        params.star_index,
-        params.salmon_index,
-        params.ref_flat
-    )
-    ch_versions = ch_versions.mix(PREPARE_REFERENCES.out.versions)
+    ch_fasta = Channel.empty()
+    ch_gtf = Channel.empty()
+    ch_fai = Channel.empty()
+    ch_chrom_sizes = Channel.empty()
+    ch_gene_bed = Channel.empty()
+    ch_transcript_fasta = Channel.empty()
+    ch_star_index = Channel.empty()
+    ch_salmon_index = Channel.empty()
+    ch_refflat = Channel.empty()
+
+    if (!params.counts) {
+        PREPARE_REFERENCES(
+            params.fasta,
+            params.gtf,
+            params.transcript_fasta,
+            params.star_index,
+            params.salmon_index,
+            params.ref_flat
+        )
+        ch_versions = ch_versions.mix(PREPARE_REFERENCES.out.versions)
+
+        ch_fasta = PREPARE_REFERENCES.out.fasta
+        ch_gtf = PREPARE_REFERENCES.out.gtf
+        ch_fai = PREPARE_REFERENCES.out.fai
+        ch_chrom_sizes = PREPARE_REFERENCES.out.chrom_sizes
+        ch_gene_bed = PREPARE_REFERENCES.out.gene_bed
+        ch_transcript_fasta = PREPARE_REFERENCES.out.transcript_fasta
+        ch_star_index = PREPARE_REFERENCES.out.star_index
+        ch_salmon_index = PREPARE_REFERENCES.out.salmon_index
+        ch_refflat = PREPARE_REFERENCES.out.refflat
+    }
 
     //
     // WORKFLOW: Run pipeline
@@ -73,15 +95,15 @@ workflow NFDATAOMICS_RNASEQ {
         samplesheet,
         counts,
         metadata,
-        PREPARE_REFERENCES.out.fasta,
-        PREPARE_REFERENCES.out.gtf,
-        PREPARE_REFERENCES.out.fai,
-        PREPARE_REFERENCES.out.chrom_sizes,
-        PREPARE_REFERENCES.out.gene_bed,
-        PREPARE_REFERENCES.out.transcript_fasta,
-        PREPARE_REFERENCES.out.star_index,
-        PREPARE_REFERENCES.out.salmon_index,
-        PREPARE_REFERENCES.out.refflat,
+        ch_fasta,
+        ch_gtf,
+        ch_fai,
+        ch_chrom_sizes,
+        ch_gene_bed,
+        ch_transcript_fasta,
+        ch_star_index,
+        ch_salmon_index,
+        ch_refflat,
         ch_versions
     )
     ch_versions = ch_versions.mix(RNASEQ.out.versions)
