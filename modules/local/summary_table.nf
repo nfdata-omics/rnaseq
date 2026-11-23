@@ -20,15 +20,15 @@ process SUMMARY_TABLE {
     script:
     """
     # Example: Loop over two lists (values and files) and print them side by side
-    names=(${cf_names.join(" ")})
+    names=(${cf_names.collect { it.replace('@', '.').replace('*', '_x_') }.join(" ")})
     files=(${single_cf_summaries})
 
     echo -e 'Comparison\tUpreg\tUpreg_percent\tDownreg\tDownreg_percent' > "dea_${meta.id}_summary.txt"
 
     for idx in "\${!names[@]}"; do
         comparison=\$(echo "\${names[\$idx]}" | sed -E 's/\\//_/g; s/^([^:]+):([^:]+):([^:]+)\$/\\1_\\2_vs_\\3/')
-        upreg=\$(cat \${files[\$idx]} | grep up | sed 's/.*: //' | tr -d ' ' | tr ',' '\t')
-        downreg=\$(cat \${files[\$idx]} | grep down | sed 's/.*: //' | tr -d ' ' | tr ',' '\t')
+        upreg=\$(cat \${files[\$idx]} | grep -E '^LFC[[:space:]]+>[[:space:]]+0[[:space:]]+[(]up[)]' | sed 's/.*: //' | tr -d ' ' | tr ',' '\t')
+        downreg=\$(cat \${files[\$idx]} | grep -E '^LFC[[:space:]]+<[[:space:]]+0[[:space:]]+[(]down[)]' | sed 's/.*: //' | tr -d ' ' | tr ',' '\t')
         echo -e "\${comparison}\t\${upreg}\t\${downreg}" >> "dea_${meta.id}_summary.txt"
     done
 
