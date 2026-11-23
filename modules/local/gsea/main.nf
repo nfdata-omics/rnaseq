@@ -1,5 +1,5 @@
 process GSEA {
-    tag "${meta.id}_${meta.cf}_${meta.geneset}"
+    tag "${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}_${meta.geneset}"
     label 'process_single'
 
     container "docker.io/nfdata/clusterprofiler:v4.14.4"
@@ -30,8 +30,8 @@ process GSEA {
 
     stub:
     """
-    touch gsea.${meta.id}_${meta.cf}.${gmt_file}.xlsx
-    touch gsea.${meta.id}_${meta.cf}.${gmt_file}.pdf
+    touch gsea.${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}.${gmt_file}.xlsx
+    touch gsea.${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}.${gmt_file}.pdf
 
     echo "${task.process}": > versions.yml
     gsea.R --version >> versions.yml

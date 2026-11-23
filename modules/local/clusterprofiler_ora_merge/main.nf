@@ -1,5 +1,5 @@
 process CLUSTERPROFILER_ORA_MERGE {
-    tag "${meta.id}_${meta.cf}"
+    tag "${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}"
     label 'process_single'
 
     container "docker.io/nfdata/bulk_rnaseq:v1.0.1"
@@ -24,10 +24,10 @@ process CLUSTERPROFILER_ORA_MERGE {
     }
     args = task.ext.args ?: ''
     """
-    ora_clusterProfiler_merge.R $args --FDR $fdr_pathways --num $n_pathways $list_of_tables
+    ora_clusterProfiler_merge.R $args --comparison "${meta.cf}" --FDR $fdr_pathways --num $n_pathways $list_of_tables
     for i in ora_CP.*.txt; do \\
       [ -f "\$i" ] || continue; \\
-      cat <(echo -e '#Over-representation\t${meta.id}\t${meta.cf}') \$i > out_tmp; \\
+      cat <(echo -e '#Over-representation\t${meta.id}\t${meta.cf.replace('@', '.').replace('*', '_x_')}') \$i > out_tmp; \\
       mv out_tmp "\$i"; \\
     done
 
@@ -37,9 +37,9 @@ process CLUSTERPROFILER_ORA_MERGE {
 
     stub:
     """
-    touch ora_CP.${meta.id}_${meta.cf}.TOP_N.txt
-    touch ora_CP.${meta.id}_${meta.cf}.xlsx
-    touch ora_CP.${meta.id}_${meta.cf}.TOP_N.pdf
+    touch ora_CP.${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}.TOP_N.txt
+    touch ora_CP.${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}.xlsx
+    touch ora_CP.${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}.TOP_N.pdf
 
     echo "${task.process}": > versions.yml
     ora_clusterProfiler_merge.R --version >> versions.yml

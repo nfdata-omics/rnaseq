@@ -1,5 +1,5 @@
 process CLUSTERPROFILER_ORA {
-    tag "${meta.id}_${meta.cf}_${meta.geneset}"
+    tag "${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}_${meta.geneset}"
     label 'process_single'
 
     container "docker.io/nfdata/clusterprofiler:v4.14.4"
@@ -32,9 +32,9 @@ process CLUSTERPROFILER_ORA {
 
     stub:
     """
-    touch ora_CP.${meta.id}_${meta.cf}.${gmt_file}.all.txt
-    touch ora_CP.${meta.id}_${meta.cf}.${gmt_file}.up.txt
-    touch ora_CP.${meta.id}_${meta.cf}.${gmt_file}.down.txt
+    touch ora_CP.${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}.${gmt_file}.all.txt
+    touch ora_CP.${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}.${gmt_file}.up.txt
+    touch ora_CP.${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}.${gmt_file}.down.txt
 
     echo "${task.process}": > versions.yml
     ora_clusterProfiler.R --version >> versions.yml

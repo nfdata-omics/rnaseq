@@ -1,5 +1,5 @@
 process GSEA_MERGE {
-    tag "${meta.id}_${meta.cf}"
+    tag "${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}"
     label 'process_single'
 
     container "docker.io/nfdata/bulk_rnaseq:v1.0.1"
@@ -21,8 +21,8 @@ process GSEA_MERGE {
     }
     args = task.ext.args ?: ''
     """
-    gsea_merge.R $args $list_of_tables
-    cat <(echo -e '#GSEA\t${meta.id}\t${meta.cf}') gsea*TOP*.txt > out_tmp
+    gsea_merge.R $args --comparison "${meta.cf}" $list_of_tables
+    cat <(echo -e '#GSEA\t${meta.id}\t${meta.cf.replace('@', '.').replace('*', '_x_')}') gsea*TOP*.txt > out_tmp
     j=\$(basename gsea*TOP*.txt)
     mv out_tmp "\$j"
 
@@ -32,8 +32,8 @@ process GSEA_MERGE {
 
     stub:
     """
-    touch gsea.${meta.id}_${meta.cf}.xlsx
-    touch gsea.${meta.id}_${meta.cf}.TOP_N.txt
+    touch gsea.${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}.xlsx
+    touch gsea.${meta.id}_${meta.cf.replace('@', '.').replace('*', '_x_')}.TOP_N.txt
 
     echo "${task.process}": > versions.yml
     gsea_merge.R --version >> versions.yml
