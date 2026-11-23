@@ -81,8 +81,29 @@ workflow DIFFERENTIAL_EXPRESSION {
         ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_COMPARE.out.dge.collect{ _meta, file -> file })
         ch_multiqc_files = ch_multiqc_files.mix(DESEQ2_COMPARE.out.summary.collect{ _meta, file -> file })
 
+        // Emit each coefficient separately, retaining its original comparison request.
+        DESEQ2_COMPARE.out.dge
+            .flatMap { meta, outputs ->
+                def tables = outputs instanceof List ? outputs : [outputs]
+                tables.collect { table ->
+                    def result_id = table.name
+                        .replaceFirst('^deseq2_toptable\\.', '')
+                        .replaceFirst('\\.txt$', '')
+                    tuple(meta + [parent_cf: meta.cf, cf: result_id], table)
+                }
+            }
+            .set { ch_dge_tables }
+
         DESEQ2_COMPARE.out.summary
-            .map{ meta, result -> [meta.id, meta.cf, result] }
+            .flatMap { meta, outputs ->
+                def summaries = outputs instanceof List ? outputs : [outputs]
+                summaries.collect { summary ->
+                    def result_id = summary.name
+                        .replaceFirst('^deseq2_summary\\.', '')
+                        .replaceFirst('\\.txt$', '')
+                    tuple(meta.id, result_id, summary)
+                }
+            }
             .groupTuple()
             .map{ key, cfs, results -> [["id": key], cfs, results] }
             .set{ ch_dge_summary }
@@ -91,7 +112,7 @@ workflow DIFFERENTIAL_EXPRESSION {
             ch_dge_summary,
         )
 
-        DESEQ2_COMPARE.out.dge
+        ch_dge_tables
         .combine(ch_genesets)
         .map{ meta, dge, geneset -> [ meta + ["geneset": file(geneset).baseName], dge, geneset] }
         .set{ ch_dge_geneset }
@@ -161,7 +182,7 @@ workflow DIFFERENTIAL_EXPRESSION {
             fdr_pathways,
             n_pathways
         )
-        ch_versions = ch_versions.mix(CLUSTERPROFILER_ORA.out.versions)
+        ch_versions = ch_versions.mix(CLUSTERPROFILER_ORA_MERGE.out.versions)
         ch_multiqc_files = ch_multiqc_files.mix(CLUSTERPROFILER_ORA_MERGE.out.CP_topn.collect{it[1]})
     }
 
