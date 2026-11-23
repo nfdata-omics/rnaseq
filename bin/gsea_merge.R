@@ -6,6 +6,7 @@ suppressMessages(library("openxlsx"))
 
 ### Script to merge results from gsea performed on different collections
 option_list <- list(
+  make_option(c("--comparison"), action="store", type="character", default=NULL, help="Exact comparison identifier in input filenames (required except with --version)."),
   make_option(c("-F", "--FDR"), action="store", type="double", default=0.1, help="The FDR cutoff to define significant pathways. [default \"%default\"]"),
   make_option(c("-n", "--num"), action="store", type="integer", default=25, help="The number of top most significantly enriched pathways to extract. [default \"%default\"]"),
   make_option(c("-v", "--version"), action="store_true", default=FALSE, help="Print the list of loaded package versions and exit.")
@@ -18,8 +19,8 @@ parser<-OptionParser(usage = "%prog [options] list_of_result_tables",
                      list_of_result_tables must be the list of the complete paths to all the GSEA results to consider.
                      Multiple paths must be separated by blank-spaces, e.g. path/to/file1 path/to/file2 path/to/file3")
 
-arguments <- parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments=TRUE)
-opt <- arguments$options
+arguments = parse_args(parser, args <- commandArgs(trailingOnly=TRUE), positional_arguments=TRUE)
+opt = arguments$options
 version = opt$version
 
 if (length(arguments$args)<1 & !version) {
@@ -40,21 +41,27 @@ if(version){
 files = arguments$args[1:length(arguments$args)]
 fdr = opt$FDR
 num = opt$num
+comparison_id = opt$comparison
+if (is.null(comparison_id) || !nzchar(comparison_id)) {
+  stop("--comparison must specify the exact comparison identifier in input filenames.", call.=FALSE)
+}
 
 
 excel_list = list()
 sign_path = c()
 
 for(f in files){
-	if (grepl("_vs_", f)) {
-		# Filenames manipulation for DGE comparisons - The result may be a little dirty if the second group of the DGE comparison (e.g. 'B' in a comparison like Group_A_vs_B) contains a dot in its name.
-		set_name = sub("^[^.]+\\.", "", strsplit(gsub("\\.xlsx$", "", gsub("gsea.", "", basename(f))), "_vs_")[[1]][2])
-		outname = gsub("\\.xlsx$", "", gsub(set_name, "", basename(f)))
-	} else {
-		# Filenames manipulation for DGE on continuous variables - The result may be a little dirty if the continuous variables contains a dot in its name.
-		outname = paste0(paste(strsplit(gsub("\\.xlsx$", "", basename(f)), "\\.")[[1]][1:2], collapse="."), ".")
-		set_name = gsub("\\.xlsx$", "", gsub(outname, "", basename(f)))
-	}
+  # Remove literal boundaries: comparison IDs may contain multiple _vs_ terms or dots.
+  prefix = paste0("gsea.", comparison_id, ".")
+  filename = basename(f)
+  if (!startsWith(filename, prefix) || !endsWith(filename, ".xlsx")) {
+    stop("Unexpected input filename for comparison '", comparison_id, "': ", filename, call.=FALSE)
+  }
+  set_name = substr(filename, nchar(prefix) + 1L, nchar(filename) - nchar(".xlsx"))
+  if (!nzchar(set_name)) {
+    stop("Missing geneset collection in filename: ", filename, call.=FALSE)
+  }
+  outname = prefix
 	if (nchar(set_name) > 31) {
 		set_name = substr(set_name, 1, 31)
 	}
