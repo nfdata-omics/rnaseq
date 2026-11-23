@@ -46,6 +46,8 @@ if(version){
 input_model = arguments$args[1]
 contrast = str_split_1(arguments$args[2], ":")
 variable = contrast[1]
+eval_interaction = FALSE
+
 if(!is.na(contrast[2])){
   num = str_split_1(contrast[2], "/")
   n_num = length(num)
@@ -62,6 +64,16 @@ if(!is.na(contrast[3])){
   denom = ""
   n_denom = 0
 }
+if(grepl("*", contrast[1], fixed=TRUE)){
+  eval_interaction = TRUE
+  var1 = str_split_1(contrast[1], "\\*")[1]
+  var2 = str_split_1(contrast[1], "\\*")[2]
+  ref1 = str_split_1(var1, "@")[2]
+  var1 = str_split_1(var1, "@")[1]
+  ref2 = str_split_1(var2, "@")[2]
+  var2 = str_split_1(var2, "@")[1]
+}
+
 fdr = opt$FDR
 suffix = opt$suffix
 
@@ -76,11 +88,95 @@ if((n_num==0 & n_denom>0) | (n_num>0 & n_denom==0)){
 
 if(n_num==0 & n_denom==0){
 
-  # Continuous variable
-  my_res = results(dds, name=variable, independentFiltering=TRUE, cooksCutoff=FALSE, alpha=fdr)
-  # I turn off cooksCutoff for outlier detection, but in the model fitting function there was minRepforReplace=7
-  outname = variable
-  plot_title = variable
+  if(eval_interaction){
+
+    # Interaction term
+    interact = character(0)
+    dds[[var1]] = relevel(dds[[var1]], ref=ref1)
+    dds[[var2]] = relevel(dds[[var2]], ref=ref2)
+    dds = DESeq(dds)
+    
+    # Extracting results for the interaction term
+    interact = resultsNames(dds)[grepl(var1, resultsNames(dds)) & grepl(var2, resultsNames(dds))]
+    if(length(interact) == 0){
+      stop("No interaction coefficients found for ", var1, " and ", var2)
+    } else {
+
+      # Cycling on interaction coefficients
+      for(i in seq_len(max(1L, length(interact)))){
+
+        coef_name = interact[i]
+        my_res = results(dds, name=coef_name, independentFiltering=TRUE, cooksCutoff=FALSE, alpha=fdr)
+        outname1 = paste0(str_split_1(coef_name, "\\.")[grepl(var1, str_split_1(coef_name, "\\."))], "_vs_", ref1)
+        outname2 = paste0(str_split_1(coef_name, "\\.")[grepl(var2, str_split_1(coef_name, "\\."))], "_vs_", ref2)
+        outname = paste0(outname1,"_x_", outname2)
+        plot_title = paste0(outname1," x ", outname2)
+
+        # Saving toptable and plots for each interaction coefficient
+        capture.output(summary(my_res, alpha=fdr), file=paste("deseq2_summary.", outname, suffix, ".txt", sep=""))
+        pdf(paste("MAplot.", outname, suffix, ".pdf", sep=""))
+        DESeq2::plotMA(my_res, ylim=c(-6,6), alpha=fdr, main=outname)
+        dev.off()
+
+        # Saving toptable
+        n_info = (which(colnames(rowData(dds))=="baseMean")-1)
+        toptable = cbind(my_res[,c("baseMean","log2FoldChange","pvalue","padj")], rep("not_sign", nrow(my_res)),rowData(dds)[,1:n_info])
+        colnames(toptable)[5:ncol(toptable)] = c("Significance", colnames(rowData(dds))[1:n_info])
+        toptable$Significance[!is.na(toptable$padj) & toptable$padj < fdr & toptable$log2FoldChange > 0] = "up"
+        toptable$Significance[!is.na(toptable$padj) & toptable$padj < fdr & toptable$log2FoldChange <= 0] = "down"
+        toptable = toptable[order(toptable$pvalue, decreasing=F),]
+        # Excluding the case in which rowData(rna_exp) ARE exactly the rownames
+        if(sum(toptable[,6]==rownames(toptable)) == nrow(toptable)) {toptable = toptable[,-6]}
+        toptable = cbind(rownames(toptable), toptable)
+        colnames(toptable)[1] = "gene_name"
+        write.table(toptable, paste("deseq2_toptable.", outname, suffix, ".txt", sep=""), row.names=F, col.names=T, quote=F, sep="\t")
+        write.xlsx(toptable, paste("deseq2_toptable.", outname, suffix, ".xlsx", sep=""), rowNames=F, colNames=T)
+
+        # Histogram of nominal pvalues
+        p = ggplot(toptable, aes(x=pvalue)) + geom_histogram(binwidth=0.05, color="blue", fill="skyblue1") + theme_classic()
+        p = p + labs(title=paste("Nominal pvalue distribution - ", plot_title, sep=""), x="nominal pvalue", y="frequency") + theme(title=element_text(size=13), axis.text=element_text(size=13))
+        pdf(paste("pvalue_hist.", outname, suffix, ".pdf", sep=""), width=8, height=8)
+        print(p)
+        dev.off()
+
+        # Volcano plot
+        colvol = rep("gray", nrow(toptable))
+        colvol[toptable$padj<fdr & toptable$log2FoldChange>0] = "red2"
+        colvol[toptable$padj<fdr & toptable$log2FoldChange<0] = "royalblue"
+        logpv = -log10(toptable$pvalue)
+        new_data = cbind(toptable[,c(3:5)], logpv, colvol)
+        colnames(new_data)=c("logFC", "pvalue", "FDR", "logpv", "sign")
+        subt = paste("Significance level was defined using the cutoff FDR<",fdr, sep="")
+        new_data = new_data[!is.na(new_data$FDR),]
+        pval_cutoff = tail(new_data$pvalue[new_data$FDR<fdr], 1) # the raw pvalue corresponding to the last significant FDR
+        p = ggplot(new_data, aes(x=logFC, y=logpv, color=sign)) + geom_point(shape=19, show.legend=F)
+        p = p + scale_color_manual(values = c("gray" = "gray", "red2" = "red2", "royalblue" = "royalblue"))
+        p = p + geom_hline(yintercept=-log10(pval_cutoff), linetype="dashed", col=1) + geom_vline(xintercept=c(-1,1), linetype="dashed", col=1)
+        p = p + labs(title=paste("Volcano plot - ", plot_title, sep=""), subtitle=subt, x="log2FC", y="- log10 (pvalue)") + theme_classic()
+        p = p + theme(title=element_text(size=20), axis.text=element_text(size=15))
+        pdf(paste("volcano.", outname, suffix, ".pdf", sep=""), width=10, height=8)
+        print(p)
+        dev.off()
+
+      }
+      # Exit successfully after all interaction coefficients have been processed
+      quit(save="no", status=0, runLast=FALSE)
+
+    }
+    #my_res = results(dds, name=interact, independentFiltering=TRUE, cooksCutoff=FALSE, alpha=fdr)
+    # I turn off cooksCutoff for outlier detection, but in the model fitting function there was minRepforReplace=7
+    #outname = paste(var1, "_x_", var2, sep="")
+    #plot_title = paste(var1, "_x_", var2, sep="")
+  
+  } else {
+    
+    # Continuous variable
+    my_res = results(dds, name=variable, independentFiltering=TRUE, cooksCutoff=FALSE, alpha=fdr)
+    # I turn off cooksCutoff for outlier detection, but in the model fitting function there was minRepforReplace=7
+    outname = variable
+    plot_title = variable
+
+  }
 
 } else {
 
